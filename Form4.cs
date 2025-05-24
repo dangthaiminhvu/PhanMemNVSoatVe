@@ -46,6 +46,17 @@ namespace PhanMemNVSoatVe
             _repo = new MySqlNhanVienRepository(cs);
 
             // Cấu hình chế độ cho DataGridView
+            ConfigureGrid();
+
+            // Nạp dữ liệu bất đồng bộ
+            _ = LoadGridAsync();
+
+            LoadGrid();
+        }
+
+        // Cấu hình lưới hiển thị
+        private void ConfigureGrid()
+        {
             dgvTimKiemNhanVien.ReadOnly = true;
             dgvTimKiemNhanVien.AllowUserToAddRows = false;
             dgvTimKiemNhanVien.AllowUserToDeleteRows = false;
@@ -53,8 +64,13 @@ namespace PhanMemNVSoatVe
             dgvTimKiemNhanVien.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dgvTimKiemNhanVien.MultiSelect = false;
             dgvTimKiemNhanVien.EditMode = DataGridViewEditMode.EditProgrammatically;
+        }
 
-            LoadGrid();
+        // Nạp dữ liệu bất đồng bộ
+        private async Task LoadGridAsync()
+        {
+            dt = await Task.Run(() => _repo.GetAll());
+            dgvTimKiemNhanVien.DataSource = dt;
         }
 
         private void LoadGrid()
@@ -63,85 +79,125 @@ namespace PhanMemNVSoatVe
             dgvTimKiemNhanVien.DataSource = dt;
         }
 
-        private void btnThemNhanVien_Click(object sender, EventArgs e)
+        private async void btnThemNhanVien_Click(object sender, EventArgs e)
         {
-            // 1. Kiểm tra tính hợp lệ của dữ liệu
-            if (string.IsNullOrWhiteSpace(txtIDNhanVien.Text) ||
-                string.IsNullOrWhiteSpace(txtTenNhanVien.Text) ||
-                !(chkNam.Checked || chkNu.Checked) ||
-                string.IsNullOrWhiteSpace(txtNgaySinh.Text) ||
-                string.IsNullOrWhiteSpace(txtEmail.Text) ||
-                string.IsNullOrWhiteSpace(txtNgayVaoLam.Text) ||
-                string.IsNullOrWhiteSpace(txtSDT.Text) ||
-                string.IsNullOrWhiteSpace(txtDiaChi.Text) ||
-                cbxChucVu.SelectedIndex < 0 ||
-                string.IsNullOrWhiteSpace(txtMucLuong.Text) ||
-                cbxTrangThai.SelectedIndex < 0 ||
-                string.IsNullOrWhiteSpace(txtMatKhau.Text))
+            if (!ValidateInput()) return;
+
+            var nv = BuildNhanVienFromForm();
+
+            bool success = await Task.Run(() => _repo.Insert(nv));
+            MessageBox.Show(success ? "Thêm nhân viên thành công!" : "Thêm thất bại!",
+                            success ? "Thành công" : "Lỗi",
+                            MessageBoxButtons.OK,
+                            success ? MessageBoxIcon.Information : MessageBoxIcon.Error);
+            if (success)
             {
-                MessageBox.Show("Vui lòng nhập đầy đủ thông tin!", "Cảnh báo",
+                await LoadGridAsync();
+                ResetInputs();
+            }
+        }
+
+        private bool ValidateInput()
+        {
+            // Check bắt buộc và độ dài
+            if (string.IsNullOrWhiteSpace(txtIDNhanVien.Text) || txtIDNhanVien.Text.Length > 10 ||
+                string.IsNullOrWhiteSpace(txtTenNhanVien.Text) || txtTenNhanVien.Text.Length > 50 ||
+                (!chkNam.Checked && !chkNu.Checked) ||
+                string.IsNullOrWhiteSpace(txtNgaySinh.Text) ||
+                string.IsNullOrWhiteSpace(txtEmail.Text) || txtEmail.Text.Length > 100 ||
+                string.IsNullOrWhiteSpace(txtNgayVaoLam.Text) ||
+                string.IsNullOrWhiteSpace(txtSDT.Text) || txtSDT.Text.Length > 15 ||
+                string.IsNullOrWhiteSpace(txtDiaChi.Text) || txtDiaChi.Text.Length > 200 ||
+                cbxChucVu.SelectedIndex < 0 ||
+                cbxTrangThai.SelectedIndex < 0)
+            {
+                MessageBox.Show("Vui lòng nhập đầy đủ và đúng độ dài thông tin!", "Cảnh báo",
                                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
+                return false;
             }
 
-            // 2. Chuyển đổi định dạng ngày
-            if (!DateTime.TryParseExact(txtNgaySinh.Text.Trim(), "dd/MM/yyyy", CultureInfo.InvariantCulture,
-                                        DateTimeStyles.None, out DateTime ngaySinh))
+            // Email regex
+            if (!Regex.IsMatch(txtEmail.Text.Trim(), @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
             {
-                MessageBox.Show("Ngày sinh không hợp lệ!", "Lỗi",
+                MessageBox.Show("Email không hợp lệ!", "Lỗi",
                                 MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
+                return false;
+            }
+
+            // Số điện thoại chỉ số
+            if (!Regex.IsMatch(txtSDT.Text.Trim(), "^[0-9]{9,15}$"))
+            {
+                MessageBox.Show("Số điện thoại phải từ 9 đến 15 chữ số!", "Lỗi",
+                                MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
+            }
+
+            // Ngày sinh và ngày vào làm định dạng dd/MM/yyyy
+            if (!DateTime.TryParseExact(txtNgaySinh.Text.Trim(), "dd/MM/yyyy", CultureInfo.InvariantCulture,
+                                        DateTimeStyles.None, out _))
+            {
+                MessageBox.Show("Ngày sinh không hợp lệ! Vui lòng nhập dd/MM/yyyy.", "Lỗi",
+                                MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
             }
             if (!DateTime.TryParseExact(txtNgayVaoLam.Text.Trim(), "dd/MM/yyyy", CultureInfo.InvariantCulture,
-                                        DateTimeStyles.None, out DateTime ngayVaoLam))
+                                        DateTimeStyles.None, out _))
             {
-                MessageBox.Show("Ngày vào làm không hợp lệ!", "Lỗi",
+                MessageBox.Show("Ngày vào làm không hợp lệ! Vui lòng nhập dd/MM/yyyy.", "Lỗi",
                                 MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
+                return false;
             }
 
-            // 3. Kiểm tra mức lương
-            if (!decimal.TryParse(txtMucLuong.Text.Trim(), out decimal mucLuong))
+            // Lương
+            if (!decimal.TryParse(txtMucLuong.Text.Trim(), out _))
             {
                 MessageBox.Show("Mức lương phải là số!", "Lỗi",
                                 MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
+                return false;
             }
 
-            // 4. Xác định giới tính
-            string gioiTinh = chkNam.Checked ? "Nam" : "Nu";
+            return true;
+        }
 
-            // 5. Tạo đối tượng NhanVien từ form
-            var nv = new NhanVien
+        private NhanVien BuildNhanVienFromForm()
+        {
+            _ = DateTime.TryParseExact(txtNgaySinh.Text.Trim(), "dd/MM/yyyy", CultureInfo.InvariantCulture,
+                                       DateTimeStyles.None, out DateTime ngaySinh);
+            _ = DateTime.TryParseExact(txtNgayVaoLam.Text.Trim(), "dd/MM/yyyy", CultureInfo.InvariantCulture,
+                                       DateTimeStyles.None, out DateTime ngayVaoLam);
+
+            return new NhanVien
             {
                 IDNhanVien = txtIDNhanVien.Text.Trim(),
                 TenNhanVien = txtTenNhanVien.Text.Trim(),
-                GioiTinh = gioiTinh,
+                GioiTinh = chkNam.Checked ? "Nam" : "Nu",
                 NgaySinh = ngaySinh,
                 Email = txtEmail.Text.Trim(),
                 NgayVaoLam = ngayVaoLam,
                 SDT = txtSDT.Text.Trim(),
                 DiaChi = txtDiaChi.Text.Trim(),
                 ChucVu = cbxChucVu.SelectedItem.ToString(),
-                MucLuong = mucLuong,
-                MatKhau = MaHoaSha256(txtMatKhau.Text.Trim()), // Mã hóa mật khẩu SHA-256
+                MucLuong = Convert.ToDecimal(txtMucLuong.Text.Trim()),
+                MatKhau = MaHoaSha256(txtMatKhau.Text.Trim()),
                 TrangThai = cbxTrangThai.SelectedItem.ToString()
             };
+        }
 
-            // 6. Thực hiện thêm bằng repository
-            bool success = _repo.Insert(nv);
-            if (success)
-            {
-                MessageBox.Show("Thêm nhân viên thành công!", "Thành công",
-                                MessageBoxButtons.OK, MessageBoxIcon.Information);
-                LoadGrid();
-                btnNhapLai_Click(null, null);
-            }
-            else
-            {
-                MessageBox.Show("Thêm thất bại!", "Lỗi",
-                                MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+        private void ResetInputs()
+        {
+            dt.DefaultView.RowFilter = string.Empty;
+            txtIDNhanVien.Clear();
+            txtTenNhanVien.Clear();
+            chkNam.Checked = chkNu.Checked = false;
+            txtNgaySinh.Clear();
+            txtEmail.Clear();
+            txtNgayVaoLam.Clear();
+            txtSDT.Clear();
+            txtDiaChi.Clear();
+            cbxChucVu.SelectedIndex = -1;
+            cbxTrangThai.SelectedIndex = -1;
+            txtMucLuong.Clear();
+            txtMatKhau.Clear();
         }
 
         private void chkNam_CheckedChanged(object sender, EventArgs e)
