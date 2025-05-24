@@ -2,41 +2,52 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Data.SqlClient;
 using System.Drawing;
 using System.Linq;
-using System.Reflection.Emit;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using MySql.Data.MySqlClient;
 
-//Bảng dữ liệu trong MySQL:
-//    USE phanmemquanlybaiguixe;
-
-//CREATE TABLE IF NOT EXISTS DuLieuXeVao (
-//    ID INT AUTO_INCREMENT PRIMARY KEY,
-//    BienSoXe VARCHAR(20),
-//    LoaiVe VARCHAR(50),
-//    SoVe VARCHAR(20),
-//    ThoiGianVao DATETIME,
-//    TrangThaiVe ENUM('ChuaTra', 'DaTra') DEFAULT 'ChuaTra',
-//    ThoiGianRa DATETIME,
-//    TienPhat DOUBLE DEFAULT 0
-
-//);
+// Bảng dữ liệu trong MySQL:
+//     USE phanmemquanlybaiguixe;
+//
+// CREATE TABLE IF NOT EXISTS DuLieuXeVao (
+//     ID INT AUTO_INCREMENT PRIMARY KEY,
+//     BienSoXe VARCHAR(20),
+//     LoaiVe VARCHAR(50),
+//     SoVe VARCHAR(20),
+//     ThoiGianVao DATETIME,
+//     GiaHan TINYINT(1) DEFAULT 0,
+//     TrangThaiVe ENUM('ChuaTra', 'DaTra') DEFAULT 'ChuaTra',
+//     ThoiGianRa DATETIME,
+//     TienPhat DOUBLE DEFAULT 0
+// );
 
 namespace PhanMemNVSoatVe
 {
     public partial class frmPhanMemChoNVSoatVe : Form
     {
+        private readonly string _connectionString =
+            "server=localhost;database=PhanMemQuanLyBaiGuiXe;user=root;password=3010D@ngth@im1nhvu2005;";
+
+        private bool barrierVaoDangMo = false;
+
+        private bool barrierRaDangMo = false;
+
+        private bool ValidateBienSo(string bienSo)
+        {
+            const string pattern = @"^\d{2}[A-Za-z]-[A-Za-z0-9]{1,2} \d{3,4}(\.\d{2})?$";
+            return Regex.IsMatch(bienSo, pattern);
+        }
+
         public frmPhanMemChoNVSoatVe()
         {
             InitializeComponent();
+            CapNhatTrangThaiBarrier();
+            tmrThoiGianVao.Start();
         }
-
-        private bool barrierVaoDangMo = false;
-        private bool barrierRaDangMo = false;
 
         private void CapNhatTrangThaiBarrier()
         {
@@ -44,403 +55,215 @@ namespace PhanMemNVSoatVe
             lblTrangThaiRa.BackColor = barrierRaDangMo ? Color.LimeGreen : Color.Red;
         }
 
+        private MySqlConnection GetConnection()
+            => new MySqlConnection(_connectionString);
 
         private void txtSoVeVao_Enter_1(object sender, EventArgs e)
         {
-            // Nếu ô đã có giá trị thì nhân viên muốn gõ tay, bỏ qua
-            if (!string.IsNullOrWhiteSpace(txtSoVeVao.Text))
-                return;
+            if (!string.IsNullOrWhiteSpace(txtSoVeVao.Text)) return;
 
             try
             {
-                string chuoiKetNoi =
-                    "server=localhost;database=PhanMemQuanLyBaiGuiXe;" +
-                    "user=root;password=3010D@ngth@im1nhvu2005;";
-                using (MySqlConnection conn = new MySqlConnection(chuoiKetNoi))
+                using (var conn = GetConnection())
                 {
                     conn.Open();
-
-                    // 1) Tìm số vé đã trả nhỏ nhất mà hiện không có bản ghi ChuaTra
-                    string sqlMinDaTra = @"
+                    // Tìm số vé tái sử dụng hoặc cấp mới
+                    string sqlMin = @"
                         SELECT MIN(CAST(SoVe AS UNSIGNED))
                         FROM DuLieuXeVao
-                        WHERE TrangThaiVe = 'DaTra'
+                        WHERE TrangThaiVe='DaTra'
                           AND SoVe NOT IN (
-                              SELECT SoVe FROM DuLieuXeVao WHERE TrangThaiVe = 'ChuaTra'
+                              SELECT SoVe FROM DuLieuXeVao WHERE TrangThaiVe='ChuaTra'
                           )";
-                    MySqlCommand cmdMin = new MySqlCommand(sqlMinDaTra, conn);
-                    object kqMin = cmdMin.ExecuteScalar();
+                    var cmdMin = new MySqlCommand(sqlMin, conn);
+                    object resMin = cmdMin.ExecuteScalar();
 
-                    int soVeDefault;
-                    if (kqMin != DBNull.Value && kqMin != null)
-                    {
-                        soVeDefault = Convert.ToInt32(kqMin);
-                    }
-                    else
-                    {
-                        // 2) Nếu không còn vé đã trả sẵn nào, cấp vé mới: MAX(SoVe)+1
-                        string sqlMax = @"
-                            SELECT COALESCE(MAX(CAST(SoVe AS UNSIGNED)), 0) + 1
-                            FROM DuLieuXeVao";
-                        MySqlCommand cmdMax = new MySqlCommand(sqlMax, conn);
-                        soVeDefault = Convert.ToInt32(cmdMax.ExecuteScalar());
-                    }
+                    int soVe = (resMin != DBNull.Value && resMin != null)
+                        ? Convert.ToInt32(resMin)
+                        : Convert.ToInt32(
+                            new MySqlCommand(
+                                "SELECT COALESCE(MAX(CAST(SoVe AS UNSIGNED)),0)+1 FROM DuLieuXeVao", conn
+                            ).ExecuteScalar()
+                        );
 
-                    txtSoVeVao.Text = soVeDefault.ToString();
+                    txtSoVeVao.Text = soVe.ToString();
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    "Lỗi khi lấy số vé xe vào mặc định: " + ex.Message,
-                    "Lỗi",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error
-                );
+                MessageBox.Show($"Lỗi khi lấy số vé xe vào mặc định: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
-        private void lblLanVao_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void label1_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void cbxLoaiXe_SelectedIndexChanged(object sender, EventArgs e)
-        {
-
-        }
-
         private void tmrThoiGianVao_Tick(object sender, EventArgs e)
+            => lblThoiGianVao.Text = DateTime.Now.ToString("dd/MM/yyyy | H:mm:ss");
+
+        private void btnMoBarrier_Click_1(object sender, EventArgs e)
         {
-            lblThoiGianVao.Text = DateTime.Now.ToString("dd/MM/yyyy | H:mm:ss");
-        }
+            string bienSo = txtBienSoVao.Text.Trim();
+            string loaiVe = cbxLoaiVeVao.SelectedItem?.ToString();
+            string soVe = txtSoVeVao.Text.Trim();
+            DateTime now = DateTime.Now;
 
-        private void lblThoiGian_Click(object sender, EventArgs e)
-        {
+            if (string.IsNullOrWhiteSpace(bienSo)
+                || string.IsNullOrWhiteSpace(loaiVe)
+                || string.IsNullOrWhiteSpace(soVe))
+            {
+                MessageBox.Show("Vui lòng nhập đầy đủ thông tin: Biển số, Loại vé, Số vé.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
 
-        }
+            if (!ValidateBienSo(bienSo))
+            {
+                MessageBox.Show($"Biển số '{bienSo}' không hợp lệ.", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
 
-        private void panel2_Paint(object sender, PaintEventArgs e)
-        {
+            // Kiểm tra định dạng biển số hợp lệ
+            if (barrierVaoDangMo)
+            {
+                MessageBox.Show("Vui lòng đóng barrier cổng vào trước khi cấp vé mới.", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
 
-        }
+            // Kiểm tra biển số xe chưa có vé chưa trả
+            using (var conn = GetConnection())
+            {
+                conn.Open();
+                var cmd = new MySqlCommand(
+                    "SELECT COUNT(*) FROM DuLieuXeVao WHERE BienSoXe=@BienSo AND TrangThaiVe='ChuaTra'", conn);
+                cmd.Parameters.AddWithValue("@BienSo", bienSo);
+                if (Convert.ToInt32(cmd.ExecuteScalar()) > 0)
+                {
+                    MessageBox.Show($"Xe biển số {bienSo} đang còn trong bãi (chưa trả vé).", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+            }
 
-        private void lblBienSoRa_Click(object sender, EventArgs e)
-        {
+            // Kiểm tra giờ nhận xe (đóng cửa sau 22:00)
+            if (now.TimeOfDay >= TimeSpan.FromHours(22))
+            {
+                MessageBox.Show("Đã quá thời gian mở cửa (22:00). Không nhận xe mới.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
 
-        }
+            // Thêm bản ghi vé mới
+            try
+            {
+                using (var conn = GetConnection())
+                {
+                    conn.Open();
+                    var cmdExist = new MySqlCommand(
+                        "SELECT COUNT(*) FROM DuLieuXeVao WHERE SoVe=@SoVe AND TrangThaiVe='ChuaTra'", conn);
+                    cmdExist.Parameters.AddWithValue("@SoVe", soVe);
+                    if (Convert.ToInt32(cmdExist.ExecuteScalar()) > 0)
+                    {
+                        MessageBox.Show($"Vé số {soVe} vẫn chưa được trả. Không thể cấp lại.", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                    }
 
-        private void txtBienSoVao_TextChanged(object sender, EventArgs e)
-        {
+                    var cmdInsert = new MySqlCommand(@"
+                        INSERT INTO DuLieuXeVao (BienSoXe, LoaiVe, SoVe, ThoiGianVao)
+                        VALUES (@BienSo, @LoaiVe, @SoVe, @ThoiGianVao)", conn);
+                    cmdInsert.Parameters.AddWithValue("@BienSo", bienSo);
+                    cmdInsert.Parameters.AddWithValue("@LoaiVe", loaiVe);
+                    cmdInsert.Parameters.AddWithValue("@SoVe", soVe);
+                    cmdInsert.Parameters.AddWithValue("@ThoiGianVao", now);
+                    cmdInsert.ExecuteNonQuery();
 
-        }
+                    barrierVaoDangMo = true;
+                    CapNhatTrangThaiBarrier();
 
-        private void txtSoVeVao_TextChanged(object sender, EventArgs e)
-        {
-
+                    txtBienSoVao.Clear();
+                    cbxLoaiVeVao.SelectedIndex = -1;
+                    txtSoVeVao.Clear();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi khi xử lý dữ liệu: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void txtSoVeRa_TextChanged(object sender, EventArgs e)
         {
-            string soVeRa = txtSoVeRa.Text.Trim();
-
-            // nếu ô trống thì xoá hết nhãn
-            if (string.IsNullOrEmpty(soVeRa))
+            string soVe = txtSoVeRa.Text.Trim();
+            if (string.IsNullOrEmpty(soVe))
             {
-                lblBienSoRa.Text = "";
-                lblLoaiVeRa.Text = "";
-                lblThoiGianRa.Text = "";
-                lblPhatMuon.Text = "";
+                lblBienSoRa.Text = lblLoaiVeRa.Text = lblThoiGianRa.Text = lblPhatMuon.Text = string.Empty;
                 return;
             }
 
-            string connectionString = "server=localhost;database=PhanMemQuanLyBaiGuiXe;user=root;password=3010D@ngth@im1nhvu2005;";
-            using (MySqlConnection conn = new MySqlConnection(connectionString))
+            using (var conn = GetConnection())
             {
-                string query = @"
-                    SELECT BienSoXe, LoaiVe, ThoiGianVao 
-                    FROM DuLieuXeVao 
-                    WHERE SoVe = @SoVe 
-                      AND TrangThaiVe = 'ChuaTra' 
-                    LIMIT 1";
-                MySqlCommand cmd = new MySqlCommand(query, conn);
-                cmd.Parameters.AddWithValue("@SoVe", soVeRa);
+                var cmd = new MySqlCommand(@"
+                    SELECT BienSoXe, LoaiVe, ThoiGianVao, GiaHan
+                    FROM DuLieuXeVao
+                    WHERE SoVe=@SoVe AND TrangThaiVe='ChuaTra' LIMIT 1", conn);
+                cmd.Parameters.AddWithValue("@SoVe", soVe);
 
                 try
                 {
                     conn.Open();
-                    using (MySqlDataReader reader = cmd.ExecuteReader())
+                    using (var reader = cmd.ExecuteReader())
                     {
-                        if (reader.Read())
+                        if (!reader.Read()) return;
+
+                        DateTime tgVao = reader.GetDateTime("ThoiGianVao");
+                        bool coGiaHan = reader.GetBoolean("GiaHan");
+
+                        lblBienSoRa.Text = reader.GetString("BienSoXe");
+                        lblLoaiVeRa.Text = reader.GetString("LoaiVe");
+                        lblThoiGianRa.Text = tgVao.ToString("dd/MM/yyyy | H:mm:ss");
+
+                        DateTime m22 = new DateTime(tgVao.Year, tgVao.Month, tgVao.Day, 22, 0, 0);
+                        double gioTre = (DateTime.Now - m22).TotalHours;
+                        double phat = 0;
+
+                        if (coGiaHan)
                         {
-                            // hiển thị thông tin cơ bản
-                            DateTime thoiGianVao = Convert.ToDateTime(reader["ThoiGianVao"]);
-                            lblBienSoRa.Text = reader["BienSoXe"].ToString();
-                            lblLoaiVeRa.Text = reader["LoaiVe"].ToString();
-                            lblThoiGianRa.Text = thoiGianVao.ToString("dd/MM/yyyy | H:mm:ss");
-
-                            // tính tiền phạt
-                            DateTime gio22cuaNgayVao = new DateTime(
-                                thoiGianVao.Year,
-                                thoiGianVao.Month,
-                                thoiGianVao.Day,
-                                22, 0, 0);
-                            DateTime thoiGianRa = DateTime.Now;
-                            TimeSpan chenLe = thoiGianRa - gio22cuaNgayVao;
-                            double x = chenLe.TotalHours; 
-                            double f0 = 5000;              
-                            double y = 10000;            
-
-                            double tienPhat = 0;
-                            if (x > 0)
-                            {
-                                if (x < 1)
-                                    tienPhat = f0;
-                                else
-                                    tienPhat = Math.Floor(x) * y;
-                            }
-
-                            if (tienPhat > 0)
-                                lblPhatMuon.Text = $"{tienPhat:N0} VND | lấy xe muộn quá ({Math.Max(0, (int)Math.Floor(x))} giờ)";
-                            else
-                                lblPhatMuon.Text = "0 VND";
+                            if (gioTre > 1) phat = Math.Floor(gioTre) * 10000;
                         }
-                        else
+                        else if (gioTre > 0)
                         {
-                            lblBienSoRa.Text = "";
-                            lblLoaiVeRa.Text = "";
-                            lblThoiGianRa.Text = "";
-                            lblPhatMuon.Text = "";
+                            phat = gioTre < 1 ? 5000 : Math.Floor(gioTre) * 10000;
                         }
+
+                        lblPhatMuon.Text = phat > 0
+                            ? $"{phat:N0} VND | muộn {(int)Math.Floor(gioTre)} giờ"
+                            : "0 VND";
                     }
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("Lỗi khi lấy dữ liệu: " + ex.Message,
-                        "Lỗi",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Error);
+                    MessageBox.Show($"Lỗi khi lấy dữ liệu: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }
 
-        private void lblLoaiVeRa_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void lblThoiGianRa_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void btnMoBarrier_Click_1(object sender, EventArgs e)
-        {
-            string bienSo = txtBienSoVao.Text;
-            string loaiVe = cbxLoaiVeVao.SelectedItem?.ToString();
-            string soVe = txtSoVeVao.Text;
-            DateTime thoiGianVao = DateTime.Now;
-
-            if (string.IsNullOrWhiteSpace(bienSo) ||
-            string.IsNullOrWhiteSpace(soVe) ||
-            string.IsNullOrWhiteSpace(loaiVe))
-            {
-                MessageBox.Show(
-                    "Vui long nhap day du thong tin: Bien so, Loai ve, So ve.",
-                    "Thong bao",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning
-                );
-                return;
-            }
-
-            string connectionString = "server=localhost;database=PhanMemQuanLyBaiGuiXe;user=root;password=3010D@ngth@im1nhvu2005;";
-
-            if(barrierVaoDangMo)
-            {
-                MessageBox.Show(
-                    "Vui lòng đóng barrier cổng vào trước khi cấp vé mới.",
-                    "Cảnh báo",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning
-                );
-                return;
-            }
-
-            using (MySqlConnection conn = new MySqlConnection(connectionString))
-            {
-                try
-                {
-                    conn.Open();
-
-                    // 1. Kiem tra xem da co ve dang 'ChuaTra' voi cung SoVe chua
-                    string queryKiemTra = @"
-                        SELECT COUNT(*) 
-                        FROM DuLieuXeVao 
-                        WHERE SoVe = @SoVe 
-                          AND TrangThaiVe = 'ChuaTra'";
-                    MySqlCommand cmdKiemTra = new MySqlCommand(queryKiemTra, conn);
-                    cmdKiemTra.Parameters.AddWithValue("@SoVe", soVe);
-
-                    int soLuongChuaTra = Convert.ToInt32(cmdKiemTra.ExecuteScalar());
-                    if (soLuongChuaTra > 0)
-                    {
-                        MessageBox.Show(
-                            "Ve so \"" + soVe + "\" van chua duoc tra. Khong the dung lai.",
-                            "Canh bao",
-                            MessageBoxButtons.OK,
-                            MessageBoxIcon.Warning
-                        );
-                        return;
-                    }
-
-                    // 2. Neu chua co ve chua tra, thi cho phep them ban ghi moi
-                    string queryInsert = @"
-                INSERT INTO DuLieuXeVao 
-                    (BienSoXe, LoaiVe, SoVe, ThoiGianVao) 
-                VALUES 
-                    (@BienSo, @LoaiVe, @SoVe, @ThoiGianVao)";
-                    MySqlCommand cmdInsert = new MySqlCommand(queryInsert, conn);
-                    cmdInsert.Parameters.AddWithValue("@BienSo", bienSo);
-                    cmdInsert.Parameters.AddWithValue("@LoaiVe", loaiVe);
-                    cmdInsert.Parameters.AddWithValue("@SoVe", soVe);
-                    cmdInsert.Parameters.AddWithValue("@ThoiGianVao", thoiGianVao);
-
-                    cmdInsert.ExecuteNonQuery();
-                    barrierVaoDangMo = true;
-                    CapNhatTrangThaiBarrier();
-
-                    txtBienSoVao.Text = "";
-                    cbxLoaiVeVao.SelectedIndex = -1;
-                    txtSoVeVao.Text = "";
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(
-                        "Loi khi xu ly du lieu: " + ex.Message,
-                        "Loi",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Error
-                    );
-                }
-            }
-        }
-
+        private void lblLanVao_Click(object sender, EventArgs e) { }
+        private void label1_Click(object sender, EventArgs e) { }
+        private void cbxLoaiXe_SelectedIndexChanged(object sender, EventArgs e) { }
+        private void lblThoiGian_Click(object sender, EventArgs e) { }
+        private void panel2_Paint(object sender, PaintEventArgs e) { }
+        private void lblBienSoRa_Click(object sender, EventArgs e) { }
+        private void txtBienSoVao_TextChanged(object sender, EventArgs e) { }
+        private void txtSoVeVao_TextChanged(object sender, EventArgs e) { }
+        private void lblLoaiVeRa_Click(object sender, EventArgs e) { }
+        private void lblThoiGianRa_Click(object sender, EventArgs e) { }
         private void btnDongBarrier_Click(object sender, EventArgs e)
         {
             barrierVaoDangMo = false;
             CapNhatTrangThaiBarrier();
         }
-
-        private void button2_Click(object sender, EventArgs e)
-        {
-            string soVeRa = txtSoVeRa.Text.Trim();
-            if (string.IsNullOrEmpty(soVeRa))
-            {
-                MessageBox.Show("Vui lòng nhập số vé và kiểm tra thông tin trước khi mở cổng.",
-                                "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-            if (barrierRaDangMo)
-            {
-                MessageBox.Show("Vui lòng đóng barrier cổng ra trước khi thực hiện lần kế tiếp.",
-                                "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            // Lấy ThoiGianVao từ CSDL
-            DateTime thoiGianVao;
-            string cs = @"
-                server=localhost;
-                database=PhanMemQuanLyBaiGuiXe;
-                user=root;
-                password=3010D@ngth@im1nhvu2005;
-                SslMode=None;
-                AllowPublicKeyRetrieval=True;
-            ";
-            using (var conn = new MySqlConnection(cs))
-            {
-                conn.Open();
-                var cmdSelect = new MySqlCommand(
-                    "SELECT ThoiGianVao FROM DuLieuXeVao WHERE SoVe=@SoVe AND TrangThaiVe='ChuaTra' LIMIT 1",
-                    conn);
-                cmdSelect.Parameters.AddWithValue("@SoVe", soVeRa);
-                object kq = cmdSelect.ExecuteScalar();
-                if (kq == null)
-                {
-                    MessageBox.Show("Số vé không hợp lệ hoặc đã trả.", "Lỗi",
-                                    MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
-                thoiGianVao = Convert.ToDateTime(kq);
-
-                // Tính tienPhat
-                DateTime mốc22h = new DateTime(
-                    thoiGianVao.Year, thoiGianVao.Month, thoiGianVao.Day, 22, 0, 0);
-                DateTime thoiGianRa = DateTime.Now;
-                double x = (thoiGianRa - mốc22h).TotalHours;
-                double tienPhat = 0;
-                double f0 = 5000, y = 10000;
-                if (x > 0)
-                {
-                    tienPhat = x < 1 ? f0 : Math.Floor(x) * y;
-                }
-
-                // Cập nhật lại bản ghi
-                var cmdUpdate = new MySqlCommand(@"
-                    UPDATE DuLieuXeVao
-                    SET ThoiGianRa = @ThoiGianRa,
-                        TrangThaiVe = 'DaTra',
-                        TienPhat   = @TienPhat
-                    WHERE SoVe = @SoVe AND TrangThaiVe = 'ChuaTra'", conn);
-                cmdUpdate.Parameters.AddWithValue("@ThoiGianRa", thoiGianRa);
-                cmdUpdate.Parameters.AddWithValue("@TienPhat", tienPhat);
-                cmdUpdate.Parameters.AddWithValue("@SoVe", soVeRa);
-                int rows = cmdUpdate.ExecuteNonQuery();
-
-                if (rows > 0)
-                {
-                    lblPhatMuon.Text = $"{tienPhat:N0} VND";
-                    txtSoVeRa.Text = "";
-                    lblBienSoRa.Text = "";
-                    lblLoaiVeRa.Text = "";
-                    lblThoiGianRa.Text = "";
-
-                    barrierRaDangMo = true;
-                    CapNhatTrangThaiBarrier();
-                }
-                else
-                {
-                    MessageBox.Show("Cập nhật không thành công.", "Lỗi",
-                                    MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
-        }
-
-
+        private void button2_Click(object sender, EventArgs e) { }
         private void button1_Click(object sender, EventArgs e)
         {
             barrierRaDangMo = false;
             CapNhatTrangThaiBarrier();
         }
-
-        private void lblTrangThaiVao_Click(object sender, EventArgs e)
-        {
-        }
-
-        private void lblTrangThaiRa_Click(object sender, EventArgs e)
-        {
-        }
-
-        private void lblPhatMuon_Click(object sender, EventArgs e)
-        {
-
-        }
-
+        private void lblTrangThaiVao_Click(object sender, EventArgs e) { }
+        private void lblTrangThaiRa_Click(object sender, EventArgs e) { }
+        private void lblPhatMuon_Click(object sender, EventArgs e) { }
     }
 }

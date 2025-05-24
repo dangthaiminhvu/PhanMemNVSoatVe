@@ -1,6 +1,6 @@
 ﻿namespace PhanMemNVSoatVe
 {
-    partial class frmPhanMemNVQuanLy
+    partial class frmPhanMemNVQuanLyKhachHang
     {
         /// <summary>
         /// Required designer variable.
@@ -108,6 +108,7 @@
             this.grdThongTinKhachHang = new System.Windows.Forms.DataGridView();
             this.chkTimKiemDaTra = new System.Windows.Forms.CheckBox();
             this.chkTimKiemChuaTra = new System.Windows.Forms.CheckBox();
+            this.btnNhapLaiTimKiem = new System.Windows.Forms.Button();
             this.tabtrang3.SuspendLayout();
             this.tabtrang2.SuspendLayout();
             this.tab1.SuspendLayout();
@@ -175,6 +176,7 @@
             this.dtpChinhSuaThoiGianRa.Name = "dtpChinhSuaThoiGianRa";
             this.dtpChinhSuaThoiGianRa.Size = new System.Drawing.Size(266, 22);
             this.dtpChinhSuaThoiGianRa.TabIndex = 8;
+            this.dtpChinhSuaThoiGianRa.ValueChanged += new System.EventHandler(this.dtpChinhSuaThoiGianRa_ValueChanged);
             // 
             // dtpChinhSuaThoiGianVao
             // 
@@ -193,6 +195,7 @@
             this.cbxChinhSuaTrangThaiVe.Name = "cbxChinhSuaTrangThaiVe";
             this.cbxChinhSuaTrangThaiVe.Size = new System.Drawing.Size(266, 24);
             this.cbxChinhSuaTrangThaiVe.TabIndex = 6;
+            this.cbxChinhSuaTrangThaiVe.SelectedIndexChanged += new System.EventHandler(this.cbxChinhSuaTrangThaiVe_SelectedIndexChanged);
             // 
             // cbxChinhSuaLoaiVe
             // 
@@ -577,20 +580,20 @@
             this.btnReset.Name = "btnReset";
             this.btnReset.Size = new System.Drawing.Size(252, 71);
             this.btnReset.TabIndex = 10;
-            this.btnReset.Text = "Điền Lại";
+            this.btnReset.Text = "NHẬP LẠI";
             this.btnReset.UseVisualStyleBackColor = false;
             this.btnReset.Click += new System.EventHandler(this.btnReset_Click);
             // 
             // btnThemDuLieu
             // 
-            this.btnThemDuLieu.BackColor = System.Drawing.Color.Lime;
+            this.btnThemDuLieu.BackColor = System.Drawing.Color.LimeGreen;
             this.btnThemDuLieu.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnThemDuLieu.ForeColor = System.Drawing.Color.White;
             this.btnThemDuLieu.Location = new System.Drawing.Point(618, 265);
             this.btnThemDuLieu.Name = "btnThemDuLieu";
             this.btnThemDuLieu.Size = new System.Drawing.Size(252, 71);
             this.btnThemDuLieu.TabIndex = 9;
-            this.btnThemDuLieu.Text = "Thêm Dữ Liệu";
+            this.btnThemDuLieu.Text = "THÊM DỮ LIỆU";
             this.btnThemDuLieu.UseVisualStyleBackColor = false;
             this.btnThemDuLieu.Click += new System.EventHandler(this.btnThemDuLieu_Click);
             // 
@@ -720,6 +723,7 @@
             // tabtrang1
             // 
             this.tabtrang1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(224)))), ((int)(((byte)(224)))), ((int)(((byte)(224)))));
+            this.tabtrang1.Controls.Add(this.btnNhapLaiTimKiem);
             this.tabtrang1.Controls.Add(this.label2);
             this.tabtrang1.Controls.Add(this.label1);
             this.tabtrang1.Controls.Add(this.lblTieuDeSoVe);
@@ -792,23 +796,23 @@
             // 
             // txtThoiGianRa
             // 
-            this.txtThoiGianRa.Location = new System.Drawing.Point(1418, 53);
+            this.txtThoiGianRa.Location = new System.Drawing.Point(1434, 53);
             this.txtThoiGianRa.Name = "txtThoiGianRa";
-            this.txtThoiGianRa.Size = new System.Drawing.Size(281, 22);
+            this.txtThoiGianRa.Size = new System.Drawing.Size(265, 22);
             this.txtThoiGianRa.TabIndex = 15;
             this.txtThoiGianRa.TextChanged += new System.EventHandler(this.txtThoiGianRa_TextChanged);
             // 
             // txtThoiGianVao
             // 
-            this.txtThoiGianVao.Location = new System.Drawing.Point(1027, 55);
+            this.txtThoiGianVao.Location = new System.Drawing.Point(1037, 55);
             this.txtThoiGianVao.Name = "txtThoiGianVao";
-            this.txtThoiGianVao.Size = new System.Drawing.Size(266, 22);
+            this.txtThoiGianVao.Size = new System.Drawing.Size(256, 22);
             this.txtThoiGianVao.TabIndex = 14;
             this.txtThoiGianVao.TextChanged += new System.EventHandler(this.txtThoiGianVao_TextChanged);
             // 
             // txtSoVe
             // 
-            this.txtSoVe.Location = new System.Drawing.Point(692, 55);
+            this.txtSoVe.Location = new System.Drawing.Point(707, 54);
             this.txtSoVe.Name = "txtSoVe";
             this.txtSoVe.Size = new System.Drawing.Size(190, 22);
             this.txtSoVe.TabIndex = 5;
@@ -816,7 +820,7 @@
             // 
             // txtBienSoXe
             // 
-            this.txtBienSoXe.Location = new System.Drawing.Point(99, 55);
+            this.txtBienSoXe.Location = new System.Drawing.Point(112, 55);
             this.txtBienSoXe.Name = "txtBienSoXe";
             this.txtBienSoXe.Size = new System.Drawing.Size(194, 22);
             this.txtBienSoXe.TabIndex = 2;
@@ -824,12 +828,14 @@
             // 
             // btnTimKiem
             // 
-            this.btnTimKiem.BackColor = System.Drawing.Color.Lime;
+            this.btnTimKiem.BackColor = System.Drawing.Color.Blue;
+            this.btnTimKiem.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnTimKiem.ForeColor = System.Drawing.Color.White;
             this.btnTimKiem.Location = new System.Drawing.Point(423, 103);
             this.btnTimKiem.Name = "btnTimKiem";
-            this.btnTimKiem.Size = new System.Drawing.Size(1071, 32);
+            this.btnTimKiem.Size = new System.Drawing.Size(883, 32);
             this.btnTimKiem.TabIndex = 13;
-            this.btnTimKiem.Text = "Tìm Kiếm";
+            this.btnTimKiem.Text = "TÌM KIẾM";
             this.btnTimKiem.UseVisualStyleBackColor = false;
             this.btnTimKiem.Click += new System.EventHandler(this.btnTimKiem_Click);
             // 
@@ -889,7 +895,7 @@
             "Vé ô tô",
             "Vé xe đạp",
             "Vé xe đạp điện"});
-            this.cbxLoaiVe.Location = new System.Drawing.Point(386, 53);
+            this.cbxLoaiVe.Location = new System.Drawing.Point(397, 54);
             this.cbxLoaiVe.Name = "cbxLoaiVe";
             this.cbxLoaiVe.Size = new System.Drawing.Size(217, 24);
             this.cbxLoaiVe.TabIndex = 7;
@@ -955,14 +961,27 @@
             this.chkTimKiemChuaTra.Size = new System.Drawing.Size(104, 24);
             this.chkTimKiemChuaTra.TabIndex = 0;
             // 
-            // frmPhanMemNVQuanLy
+            // btnNhapLaiTimKiem
+            // 
+            this.btnNhapLaiTimKiem.BackColor = System.Drawing.Color.Red;
+            this.btnNhapLaiTimKiem.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnNhapLaiTimKiem.ForeColor = System.Drawing.Color.White;
+            this.btnNhapLaiTimKiem.Location = new System.Drawing.Point(1329, 103);
+            this.btnNhapLaiTimKiem.Name = "btnNhapLaiTimKiem";
+            this.btnNhapLaiTimKiem.Size = new System.Drawing.Size(160, 32);
+            this.btnNhapLaiTimKiem.TabIndex = 21;
+            this.btnNhapLaiTimKiem.Text = "NHẬP LẠI";
+            this.btnNhapLaiTimKiem.UseVisualStyleBackColor = false;
+            this.btnNhapLaiTimKiem.Click += new System.EventHandler(this.btnNhapLaiTimKiem_Click);
+            // 
+            // frmPhanMemNVQuanLyKhachHang
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1924, 962);
             this.Controls.Add(this.tab1);
-            this.Name = "frmPhanMemNVQuanLy";
-            this.Text = "Phần Mềm Dành Cho Nhân Viên Quản Lý Thông Tin";
+            this.Name = "frmPhanMemNVQuanLyKhachHang";
+            this.Text = "Phần Mềm Dành Cho Nhân Viên Quản Lý Thông Tin Khách Hàng";
             this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
             this.Load += new System.EventHandler(this.frmPhanMemNVQuanLyKhachHang_Load);
             this.tabtrang3.ResumeLayout(false);
@@ -1060,5 +1079,6 @@
         private System.Windows.Forms.CheckBox chkDaTra;
         private System.Windows.Forms.CheckBox chkChuaTra;
         private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Button btnNhapLaiTimKiem;
     }
 }

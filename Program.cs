@@ -16,7 +16,33 @@ namespace PhanMemNVSoatVe
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new frmPhanMemNVQuanLy());
+
+            using (var login = new frmDangNhap())
+            {
+                if (login.ShowDialog() != DialogResult.OK)
+                    return;
+
+                Form mainForm;
+                switch (login.ChucVuDaDangNhap)
+                {
+                    case "Quản Lý Thông Tin":
+                        mainForm = new frmPhanMemNVQuanLyKhachHang();
+                        break;
+                    case "Soát Vé":
+                        mainForm = new frmPhanMemChoNVSoatVe();
+                        break;
+                    case "Quản Lý Khách Hàng":
+                        mainForm = new frmPhanMemDanhChoNVQuanLyKhachHang();
+                        break;
+                    case "Quản Trị Viên":
+                        mainForm = new frmPhanMemDanhChoNVQuanTriVien();
+                        break;
+                    default:
+                        return;
+                }
+
+                Application.Run(mainForm);
+            }
         }
     }
 }
