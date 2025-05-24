@@ -127,7 +127,7 @@
             this.txtSoVeVao.Name = "txtSoVeVao";
             this.txtSoVeVao.Size = new System.Drawing.Size(524, 22);
             this.txtSoVeVao.TabIndex = 5;
-            this.txtSoVeVao.TextChanged += new System.EventHandler(this.txtSoVeVao_TextChanged);
+            this.txtSoVeVao.TextChanged += new System.EventHandler(this.txtSoVeVao_Enter_1);
             this.txtSoVeVao.Enter += new System.EventHandler(this.txtSoVeVao_Enter_1);
             // 
             // lblTieuDeSoVeVao

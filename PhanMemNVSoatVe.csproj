@@ -99,7 +99,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DataAccess\INhanVienRepository.cs" />
+    <Compile Include="DataAccess\IXeVaoRepository.cs" />
     <Compile Include="DataAccess\MySqlNhanVienRepository.cs" />
+    <Compile Include="DataAccess\MySqlXeVaoRepository.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -131,6 +133,7 @@
       <DependentUpon>Form5.cs</DependentUpon>
     </Compile>
     <Compile Include="Models\NhanVien.cs" />
+    <Compile Include="Models\XeVao.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Form1.resx">
@@ -167,6 +170,7 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <None Include="README\README_FORM4.md" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
