@@ -238,10 +238,63 @@ namespace PhanMemNVSoatVe
         private void btnTimKiemNV_Click(object sender, EventArgs e)
         {
             if (dt == null) return;
+            dt.DefaultView.RowFilter = BuildFilterString();
+        }
+
+        private string BuildFilterString()
+        {
             var filters = new List<string>();
-            dt.DefaultView.RowFilter = filters.Count > 0
-                ? string.Join(" AND ", filters)
-                : string.Empty;
+            // 1. Mã NV
+            var id = txtIDNhanVien.Text.Trim().Replace("'", "''");
+            if (!string.IsNullOrEmpty(id))
+                filters.Add($"IDNhanVien LIKE '%{id}%' ");
+            // 2. Tên NV
+            var ten = txtTenNhanVien.Text.Trim().Replace("'", "''");
+            if (!string.IsNullOrEmpty(ten))
+                filters.Add($"TenNhanVien LIKE '%{ten}%' ");
+            // 3. Giới tính
+            if (chkNam.Checked && !chkNu.Checked)
+                filters.Add("GioiTinh = 'Nam'");
+            else if (chkNu.Checked && !chkNam.Checked)
+                filters.Add("GioiTinh = 'Nu'");
+            // 4. Ngày sinh
+            if (DateTime.TryParseExact(txtNgaySinh.Text.Trim(), "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var ns))
+            {
+                var next = ns.AddDays(1);
+                filters.Add($"NgaySinh >= '{ns:yyyy-MM-dd}' AND NgaySinh < '{next:yyyy-MM-dd}'");
+            }
+            // 5. Email
+            var email = txtEmail.Text.Trim().Replace("'", "''");
+            if (!string.IsNullOrEmpty(email))
+                filters.Add($"Email LIKE '%{email}%' ");
+            // 6. SDT
+            var sdt = txtSDT.Text.Trim().Replace("'", "''");
+            if (!string.IsNullOrEmpty(sdt))
+                filters.Add($"SDT LIKE '%{sdt}%' ");
+            // 7. Địa chỉ
+            var dc = txtDiaChi.Text.Trim().Replace("'", "''");
+            if (!string.IsNullOrEmpty(dc))
+                filters.Add($"DiaChi LIKE '%{dc}%' ");
+            // 8. Chức vụ
+            if (cbxChucVu.SelectedIndex >= 0)
+            {
+                var cv = cbxChucVu.SelectedItem.ToString().Replace("'", "''");
+                filters.Add($"ChucVu = '{cv}'");
+            }
+            // 9. Mức lương
+            if (decimal.TryParse(txtMucLuong.Text.Trim(), out var ml))
+                filters.Add($"MucLuong = {ml}");
+            // 10. Mật khẩu
+            var mk = txtMatKhau.Text.Trim().Replace("'", "''");
+            if (!string.IsNullOrEmpty(mk))
+                filters.Add($"MatKhau LIKE '%{mk}%' ");
+            // 11. Trạng thái
+            if (cbxTrangThai.SelectedIndex >= 0)
+            {
+                var tt = cbxTrangThai.SelectedItem.ToString().Replace("'", "''");
+                filters.Add($"TrangThai = '{tt}'");
+            }
+            return filters.Count > 0 ? string.Join(" AND ", filters) : string.Empty;
         }
 
         private void LoadNhanVien(string id)
