@@ -13,5 +13,6 @@ namespace PhanMemNVSoatVe.DataAccess
         bool CheckSoVeDangSuDung(string soVe);
         bool Insert(XeVao xe);
         bool CapNhatRaVe(string soVe, DateTime thoiGianRa, double tienPhat);
+        IEnumerable<XeVao> Search(string bienSo, string soVe, DateTime? from, DateTime? to);
     }
 }

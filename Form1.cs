@@ -11,6 +11,8 @@ using System.Windows.Forms;
 using MySql.Data.MySqlClient;
 using PhanMemNVSoatVe.DataAccess;
 using PhanMemNVSoatVe.Models;
+using PhanMemNVSoatVe.Views;
+using PhanMemNVSoatVe.Presenters;
 
 // Bảng dữ liệu trong MySQL:
 //     USE phanmemquanlybaiguixe;
@@ -29,8 +31,10 @@ using PhanMemNVSoatVe.Models;
 
 namespace PhanMemNVSoatVe
 {
-    public partial class frmPhanMemChoNVSoatVe : Form
+    public partial class frmPhanMemChoNVSoatVe : Form, IQuanLyXeView
     {
+        private readonly QuanLyXePresenter _presenter;
+
         private readonly IXeVaoRepository _repo;
         private bool barrierVaoDangMo = false;
         private bool barrierRaDangMo = false;
@@ -43,8 +47,68 @@ namespace PhanMemNVSoatVe
             _repo = new MySqlXeVaoRepository();
             CapNhatTrangThaiBarrier();
             tmrThoiGianVao.Start();
+
+            // KHỞI TẠO PRESENTER vói this và repository
+            _presenter = new QuanLyXePresenter(this, _repo);
+
+            // WIRE UI events thành các event của IQuanLyXeView
+            btnMoBarrier.Click += (s, e) => MoBarrierVaoClicked.Invoke(s, e);
+            btnDongBarrier.Click += (s, e) => DongBarrierVaoClicked.Invoke(s, e);
+            button1.Click += (s, e) => DongBarrierRaClicked.Invoke(s, e);
+            button2.Click += (s, e) => MoBarrierRaClicked.Invoke(s, e);
+            txtSoVeRa.TextChanged += (s, e) => SoVeRaTextChanged.Invoke(s, e);
+            tmrThoiGianVao.Tick += (s, e) => TimerTick.Invoke(s, e);
         }
 
+        #region IQuanLyXeView Implementation
+
+        // Properties lấy từ UI
+        public string BienSo   => txtBienSoVao.Text.Trim();
+        public string LoaiVe   => cbxLoaiVeVao.SelectedItem?.ToString() ?? "";
+        public string SoVe     => txtSoVeVao.Text.Trim();
+
+        // Events để Presenter đăng ký
+        public event EventHandler MoBarrierVaoClicked;
+        public event EventHandler DongBarrierVaoClicked;
+        public event EventHandler MoBarrierRaClicked;
+        public event EventHandler DongBarrierRaClicked;
+        public event EventHandler SoVeRaTextChanged;
+        public event EventHandler TimerTick;
+
+        // Các phương thức Presenter gọi vào
+        public void ShowError(string message)
+            => MessageBox.Show(message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+        public void ShowInfo(string message)
+            => MessageBox.Show(message, "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+        public void DisplayXeInfo(XeVao xe)
+        {
+            if (xe == null)
+            {
+                lblBienSoRa.Text =
+                lblLoaiVeRa.Text =
+                lblThoiGianRa.Text =
+                lblPhatMuon.Text = "";
+                return;
+            }
+            lblBienSoRa.Text = xe.BienSoXe;
+            lblLoaiVeRa.Text = xe.LoaiVe;
+            lblThoiGianRa.Text = xe.ThoiGianVao.ToString("dd/MM/yyyy | H:mm:ss");
+            lblPhatMuon.Text = xe.TienPhat > 0
+                                  ? $"{xe.TienPhat:N0} VND | muộn {Math.Floor((DateTime.Now - xe.ThoiGianVao).TotalHours)} giờ"
+                                  : "0 VND";
+        }
+
+        public void ToggleBarrierVao(bool isOpen)
+            => lblTrangThaiVao.BackColor = isOpen ? Color.LimeGreen : Color.Red;
+
+        public void ToggleBarrierRa(bool isOpen)
+            => lblTrangThaiRa.BackColor = isOpen ? Color.LimeGreen : Color.Red;
+
+        #endregion
+
+        #region
         private void CapNhatTrangThaiBarrier()
         {
             lblTrangThaiVao.BackColor = barrierVaoDangMo ? Color.LimeGreen : Color.Red;
@@ -76,114 +140,10 @@ namespace PhanMemNVSoatVe
             lblThoiGianVao.Text = DateTime.Now.ToString("dd/MM/yyyy | H:mm:ss");
         }
 
-        private void btnMoBarrier_Click_1(object sender, EventArgs e)
-        {
-            var bienSo = txtBienSoVao.Text.Trim();
-            var loaiVe = cbxLoaiVeVao.SelectedItem?.ToString();
-            var soVe = txtSoVeVao.Text.Trim();
-            var now = DateTime.Now;
-
-            if (string.IsNullOrWhiteSpace(bienSo) || string.IsNullOrWhiteSpace(loaiVe) || string.IsNullOrWhiteSpace(soVe))
-            {
-                MessageBox.Show("Vui lòng nhập đầy đủ Biển số, Loại vé và Số vé.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            if (!_regexBienSo.IsMatch(bienSo))
-            {
-                MessageBox.Show($"Biển số '{bienSo}' không hợp lệ.", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            if (barrierVaoDangMo)
-            {
-                MessageBox.Show("Đóng barrier trước khi cấp vé mới.", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            if (_repo.GetByBienSoChuaTra(bienSo) != null)
-            {
-                MessageBox.Show($"Xe {bienSo} đang còn trong bãi.", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            if (now.TimeOfDay >= TimeSpan.FromHours(22))
-            {
-                MessageBox.Show("Quá giờ nhận xe (sau 22:00).", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
-
-            if (_repo.CheckSoVeDangSuDung(soVe))
-            {
-                MessageBox.Show($"Vé {soVe} chưa trả.", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            var xe = new XeVao
-            {
-                BienSoXe = bienSo,
-                LoaiVe = loaiVe,
-                SoVe = soVe,
-                ThoiGianVao = now,
-                GiaHan = false
-            };
-
-            if (_repo.Insert(xe))
-            {
-                barrierVaoDangMo = true;
-                CapNhatTrangThaiBarrier();
-                txtBienSoVao.Clear();
-                cbxLoaiVeVao.SelectedIndex = -1;
-                txtSoVeVao.Clear();
-            }
-            else
-            {
-                MessageBox.Show("Lỗi khi cấp vé.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-        private void txtSoVeRa_TextChanged(object sender, EventArgs e)
-        {
-            var soVe = txtSoVeRa.Text.Trim();
-            if (string.IsNullOrEmpty(soVe))
-            {
-                lblBienSoRa.Text = lblLoaiVeRa.Text = lblThoiGianRa.Text = lblPhatMuon.Text = string.Empty;
-                return;
-            }
-
-            var xe = _repo.GetBySoVe(soVe);
-            if (xe == null)
-            {
-                lblBienSoRa.Text = lblLoaiVeRa.Text = lblThoiGianRa.Text = lblPhatMuon.Text = string.Empty;
-                return;
-            }
-
-            lblBienSoRa.Text = xe.BienSoXe;
-            lblLoaiVeRa.Text = xe.LoaiVe;
-            lblThoiGianRa.Text = xe.ThoiGianVao.ToString("dd/MM/yyyy | H:mm:ss");
-
-            var delta = DateTime.Now - xe.ThoiGianVao;
-            double phat = 0;
-            if (delta.TotalHours > (xe.GiaHan ? 1 : 0))
-            {
-                phat = Math.Floor(delta.TotalHours) * 10000;
-                if (!xe.GiaHan && delta.TotalHours < 1)
-                    phat = 5000;
-            }
-            lblPhatMuon.Text = phat > 0 ? $"{phat:N0} VND | muộn {Math.Floor(delta.TotalHours)} giờ" : "0 VND";
-        }
-        private void button1_Click(object sender, EventArgs e)
-        {
-            barrierRaDangMo = false;
-            CapNhatTrangThaiBarrier();
-        }
-
-        private void btnDongBarrier_Click(object sender, EventArgs e)
-        {
-            barrierVaoDangMo = false;
-            CapNhatTrangThaiBarrier();
-        }
-
+        private void btnMoBarrier_Click_1(object sender, EventArgs e){ }
+        private void txtSoVeRa_TextChanged(object sender, EventArgs e) { }
+        private void button1_Click(object sender, EventArgs e) { }
+        private void btnDongBarrier_Click(object sender, EventArgs e) { }
         private void lblLanVao_Click(object sender, EventArgs e) { }
         private void label1_Click(object sender, EventArgs e) { }
         private void cbxLoaiXe_SelectedIndexChanged(object sender, EventArgs e) { }
@@ -197,5 +157,7 @@ namespace PhanMemNVSoatVe
         private void lblTrangThaiVao_Click(object sender, EventArgs e) { }
         private void lblTrangThaiRa_Click(object sender, EventArgs e) { }
         private void lblPhatMuon_Click(object sender, EventArgs e) { }
+
+        #endregion
     }
 }

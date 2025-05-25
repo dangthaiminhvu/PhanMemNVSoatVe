@@ -11,232 +11,92 @@ using System.Windows.Forms;
 using MySql.Data.MySqlClient;
 using System.Text.RegularExpressions;
 using PhanMemNVSoatVe.DataAccess;
+using PhanMemNVSoatVe.Views;
+using PhanMemNVSoatVe.Presenters;
 using PhanMemNVSoatVe.Models;
 
 
 namespace PhanMemNVSoatVe
 {
-    public partial class frmPhanMemNVQuanLyThongTin : Form
+    public partial class frmPhanMemNVQuanLyThongTin : Form, IQuanLyThongTinView
     {
-        private readonly IDuLieuXeVaoRepository _repo;
-        private BindingList<XeVao> _list;
+        private readonly QuanLyThongTinPresenter _presenter;
 
         public frmPhanMemNVQuanLyThongTin()
         {
             InitializeComponent();
-            _repo = new MySqlDuLieuXeVaoRepository();
-            ConfigureGrid();
-            LoadData();
-            HookEvents();
+            _presenter = new QuanLyThongTinPresenter(this, new MySqlDuLieuXeVaoRepository());
+
+            this.Load += (s, e) => LoadData?.Invoke(s, e);
+            btnTimKiem.Click += (s, e) => FilterChanged?.Invoke(s, e);
+            btnNhapLaiTimKiem.Click += (s, e) => ResetFilterClicked?.Invoke(s, e);
+            btnThemDuLieu.Click += (s, e) => AddClicked?.Invoke(s, e);
+            btnLuuThonTin.Click += (s, e) => UpdateClicked?.Invoke(s, e);
+            btnXoaThongTin.Click += (s, e) => DeleteClicked?.Invoke(s, e);
+            btnReset.Click += (s, e) => ResetNewClicked?.Invoke(s, e);
+            txtNhapID.TextChanged += (s, e) => EditIDChanged?.Invoke(s, e);
         }
 
-        private void HookEvents()
+        #region IQuanLyThongTinView Members
+        public string FilterBienSo => txtBienSoXe.Text.Trim();
+        public string FilterLoaiVe => cbxLoaiVe.SelectedIndex >= 0 ? cbxLoaiVe.Text : string.Empty;
+        public string FilterSoVe => txtSoVe.Text.Trim();
+        public DateTime? FilterVaoDate => DateTime.TryParse(txtThoiGianVao.Text, out var d1) ? d1 : (DateTime?)null;
+        public DateTime? FilterRaDate => DateTime.TryParse(txtThoiGianRa.Text, out var d2) ? d2 : (DateTime?)null;
+        public bool FilterDaTra => chkDaTra.Checked;
+        public bool FilterChuaTra => chkChuaTra.Checked;
+        public BindingList<XeVao> GridData
         {
-            this.Load += (_, __) => LoadData();
-            btnTimKiem.Click += (_, __) => ApplyFilter();
-            btnNhapLaiTimKiem.Click += (_, __) => ResetFilter();
-            btnThemDuLieu.Click += (_, __) => AddNewRecord();
-            btnLuuThonTin.Click += (_, __) => UpdateRecord();
-            btnXoaThongTin.Click += (_, __) => DeleteRecord();
-            txtNhapID.TextChanged += (_, __) => PopulateEditSection();
-            btnReset.Click += (_, __) => ResetNewForm();
+            set => grdThongTinKhachHang.DataSource = value;
         }
 
-        private void btnTimKiem_Click(object sender, EventArgs e) => ApplyFilter();
-        private void btnNhapLaiTimKiem_Click(object sender, EventArgs e) => ResetFilter();
-        private void btnThemDuLieu_Click(object sender, EventArgs e) => AddNewRecord();
-        private void btnLuuThonTin_Click(object sender, EventArgs e) => UpdateRecord();
-        private void btnXoaThongTin_Click(object sender, EventArgs e) => DeleteRecord();
-        private void txtNhapID_TextChanged(object sender, EventArgs e) => PopulateEditSection();
-        private void btnReset_Click(object sender, EventArgs e) => ResetNewForm();
-        private void txtNhapSoVe_Enter_1(object sender, EventArgs e) { }
+        public string NewBienSo => txtNhapBienSo.Text.Trim();
+        public string NewLoaiVe => cbxNhapLoaiVe.SelectedIndex >= 0 ? cbxNhapLoaiVe.Text : string.Empty;
+        public string NewSoVe => txtNhapSoVe.Text.Trim();
+        public DateTime NewThoiGianVao => dtpNhapThoiGianVao.Value;
+        public string NewTrangThaiVe => cbxNhapTrangThaiVe.SelectedIndex >= 0 ? cbxNhapTrangThaiVe.Text : string.Empty;
+        public DateTime? NewThoiGianRa => cbxNhapTrangThaiVe.Text == "DaTra" ? (DateTime?)dtpNhapThoiGianRa.Value : null;
+        public double NewTienPhat => double.TryParse(txtNhapTienPhat.Text, out var tp) ? tp : 0;
 
-        private void ConfigureGrid()
+        public string EditID => txtNhapID.Text.Trim();
+
+        public void ShowEditSection(XeVao xe)
         {
-            grdThongTinKhachHang.AutoGenerateColumns = true;
-            grdThongTinKhachHang.ReadOnly = true;
-            grdThongTinKhachHang.AllowUserToAddRows = false;
-            grdThongTinKhachHang.AllowUserToDeleteRows = false;
-            grdThongTinKhachHang.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            grdThongTinKhachHang.MultiSelect = false;
-        }
-
-        private void LoadData()
-        {
-            var data = _repo.GetAll().ToList();
-            _list = new BindingList<XeVao>(data);
-            grdThongTinKhachHang.DataSource = _list;
-        }
-
-        private void ApplyFilter()
-        {
-            var filtered = _list.AsEnumerable();
-
-            if (!string.IsNullOrWhiteSpace(txtBienSoXe.Text))
-                filtered = filtered.Where(x => x.BienSoXe.IndexOf(txtBienSoXe.Text.Trim(), StringComparison.OrdinalIgnoreCase)>=0);
-
-            if (cbxLoaiVe.SelectedIndex >= 0)
-                filtered = filtered.Where(x => x.LoaiVe == cbxLoaiVe.Text);
-
-            if (int.TryParse(txtSoVe.Text.Trim(), out var soVe))
-                filtered = filtered.Where(x => int.TryParse(x.SoVe, out var v) && v == soVe);
-
-            if (DateTime.TryParse(txtThoiGianVao.Text, out var d1))
-                filtered = filtered.Where(x => x.ThoiGianVao.Date == d1.Date);
-
-            if (DateTime.TryParse(txtThoiGianRa.Text, out var d2))
-                filtered = filtered.Where(x => x.ThoiGianRa?.Date == d2.Date);
-
-            if (chkDaTra.Checked ^ chkChuaTra.Checked)
-                filtered = filtered.Where(x => x.TrangThaiVe == (chkDaTra.Checked ? "DaTra" : "ChuaTra"));
-
-            grdThongTinKhachHang.DataSource = new BindingList<XeVao>(filtered.ToList());
-        }
-
-        private void ResetFilter()
-        {
-            txtBienSoXe.Clear();
-            cbxLoaiVe.SelectedIndex = -1;
-            txtSoVe.Clear();
-            txtThoiGianVao.Clear();
-            txtThoiGianRa.Clear();
-            chkDaTra.Checked = chkChuaTra.Checked = false;
-            LoadData();
-        }
-
-        private void AddNewRecord()
-        {
-            var xe = new XeVao
-            {
-                BienSoXe = txtNhapBienSo.Text.Trim(),
-                LoaiVe = cbxNhapLoaiVe.Text,
-                SoVe = txtNhapSoVe.Text.Trim(),
-                ThoiGianVao = dtpNhapThoiGianVao.Value,
-                TrangThaiVe = string.IsNullOrWhiteSpace(cbxNhapTrangThaiVe.Text) ? "ChuaTra" : cbxNhapTrangThaiVe.Text,
-                ThoiGianRa = cbxNhapTrangThaiVe.Text == "DaTra" ? dtpNhapThoiGianRa.Value : (DateTime?)null,
-                TienPhat = double.TryParse(txtNhapTienPhat.Text.Trim(), out var tp) ? tp : 0
-            };
-            if (_repo.Insert(xe))
-            {
-                MessageBox.Show("Thêm dữ liệu thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                ResetNewForm();
-                LoadData();
-            }
-            else
-                MessageBox.Show("Thêm dữ liệu thất bại.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
-
-        private void PopulateEditSection()
-        {
-            if (!int.TryParse(txtNhapID.Text.Trim(), out var id))
-            {
-                ClearEditSection();
-                return;
-            }
-
-            var xe = _repo.GetById(id);
-            if (xe == null)
-            {
-                ClearEditSection();
-                return;
-            }
-
-            // Hiển thị thông tin hiện tại
+            if (xe == null) return;
             lblThonTinBienSo.Text = xe.BienSoXe;
             lblThongTinLoaiVe.Text = xe.LoaiVe;
             lblThongTinSoVe.Text = xe.SoVe;
             lblThongTinThoiGianVao.Text = xe.ThoiGianVao.ToString("dd/MM/yyyy HH:mm:ss");
             lblThongTinTrangThaiVe.Text = xe.TrangThaiVe;
-            lblThongTinThoiGianRa.Text = xe.ThoiGianRa?.ToString("dd/MM/yyyy HH:mm:ss") ?? string.Empty;
+            lblThongTinThoiGianRa.Text = xe.ThoiGianRa?.ToString("dd/MM/yyyy HH:mm:ss");
             lblThongTinTienPhat.Text = xe.TienPhat.ToString("N0");
 
-            // Gán giá trị vào các textbox chỉnh sửa
             txtChinhSuaBienSo.Text = xe.BienSoXe;
             cbxChinhSuaLoaiVe.Text = xe.LoaiVe;
             txtChinhSuaSoVe.Text = xe.SoVe;
             txtChinhSuaThoiGianVao.Text = xe.ThoiGianVao.ToString("dd/MM/yyyy HH:mm:ss");
             cbxChinhSuaTrangThaiVe.Text = xe.TrangThaiVe;
-            txtChinhSuaThoiGianRa.Text = xe.ThoiGianRa?.ToString("dd/MM/yyyy HH:mm:ss") ?? string.Empty;
+            txtChinhSuaThoiGianRa.Text = xe.ThoiGianRa?.ToString("dd/MM/yyyy HH:mm:ss");
             txtChinhSuaTienPhat.Text = xe.TienPhat.ToString();
         }
 
-    private void ClearEditSection()
-        {
-            lblThonTinBienSo.Text = lblThongTinLoaiVe.Text = lblThongTinSoVe.Text =
-            lblThongTinThoiGianVao.Text = lblThongTinTrangThaiVe.Text =
-            lblThongTinThoiGianRa.Text = lblThongTinTienPhat.Text = string.Empty;
+        public void ShowError(string msg)
+            => MessageBox.Show(msg, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        public void ShowInfo(string msg)
+            => MessageBox.Show(msg, "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-            txtChinhSuaBienSo.Clear();
-            cbxChinhSuaLoaiVe.SelectedIndex = -1;
-            txtChinhSuaSoVe.Clear();
-            txtChinhSuaThoiGianVao.Clear();
-            cbxChinhSuaTrangThaiVe.SelectedIndex = -1;
-            txtChinhSuaThoiGianRa.Clear();
-            txtChinhSuaTienPhat.Clear();
-        }
+        public event EventHandler LoadData;
+        public event EventHandler FilterChanged;
+        public event EventHandler ResetFilterClicked;
+        public event EventHandler AddClicked;
+        public event EventHandler UpdateClicked;
+        public event EventHandler DeleteClicked;
+        public event EventHandler ResetNewClicked;
+        public event EventHandler EditIDChanged;
+        #endregion
 
-        private void UpdateRecord()
-        {
-            if (!int.TryParse(txtNhapID.Text.Trim(), out var id)) return;
-            var xe = _repo.GetById(id);
-            if (xe == null) return;
-
-            xe.BienSoXe = txtChinhSuaBienSo.Text.Trim();
-            xe.LoaiVe = cbxChinhSuaLoaiVe.Text;
-            xe.SoVe = txtChinhSuaSoVe.Text.Trim();
-
-            // Parse ThoiGianVao
-            if (DateTime.TryParseExact(txtChinhSuaThoiGianVao.Text.Trim(),
-                "dd/MM/yyyy HH:mm:ss", null, System.Globalization.DateTimeStyles.None, out var vao))
-                xe.ThoiGianVao = vao;
-
-            xe.TrangThaiVe = cbxChinhSuaTrangThaiVe.Text;
-
-            // Parse ThoiGianRa nếu có
-            if (xe.TrangThaiVe == "DaTra" &&
-                DateTime.TryParseExact(txtChinhSuaThoiGianRa.Text.Trim(),
-                "dd/MM/yyyy HH:mm:ss", null, System.Globalization.DateTimeStyles.None, out var ra))
-            {
-                xe.ThoiGianRa = ra;
-            }
-            else
-            {
-                xe.ThoiGianRa = null;
-            }
-
-            xe.TienPhat = double.TryParse(txtChinhSuaTienPhat.Text.Trim(), out var tp2) ? tp2 : 0;
-
-            if (_repo.Update(xe))
-            {
-                MessageBox.Show("Cập nhật thành công.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                LoadData();
-            }
-            else
-            {
-                MessageBox.Show("Cập nhật không thành công.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-        private void DeleteRecord()
-        {
-            if (!int.TryParse(txtNhapID.Text.Trim(), out var id)) return;
-            if (MessageBox.Show("Bạn có chắc muốn xóa?", "Xác nhận", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes) return;
-            if (_repo.Delete(id))
-            {
-                MessageBox.Show("Xóa thành công.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                LoadData(); ClearEditSection(); txtNhapID.Clear();
-            }
-            else
-                MessageBox.Show("Xóa không thành công.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
-
-        private void ResetNewForm()
-        {
-            txtNhapBienSo.Clear(); cbxNhapLoaiVe.SelectedIndex = -1;
-            txtNhapSoVe.Clear(); dtpNhapThoiGianVao.Value = DateTime.Now;
-            cbxNhapTrangThaiVe.SelectedIndex = -1; dtpNhapThoiGianRa.Value = DateTime.Now;
-            txtNhapTienPhat.Clear();
-        }
+        #region
+        private void txtNhapSoVe_Enter_1(object sender, EventArgs e) { }
 
         private void cbxChinhSuaLoaiVe_SelectedIndexChanged(object sender, EventArgs e) { }
         private void btnVietLai_Click(object sender, EventArgs e) { }
@@ -264,5 +124,6 @@ namespace PhanMemNVSoatVe
         private void cbxChinhSuaTrangThaiVe_SelectedIndexChanged(object sender, EventArgs e) { }
         private void txtChinhSuaThoiGianVao_TextChanged(object sender, EventArgs e) { }
         private void txtChinhSuaThoiGianRa_TextChanged(object sender, EventArgs e) { }
+        #endregion
     }
 }

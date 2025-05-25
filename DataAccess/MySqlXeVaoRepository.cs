@@ -4,6 +4,8 @@ using System.Configuration;
 using MySql.Data.MySqlClient;
 using PhanMemNVSoatVe.Models;
 using PhanMemNVSoatVe.DataAccess;
+using System.Collections;
+using System.Text;
 
 namespace PhanMemNVSoatVe.DataAccess
 {
@@ -150,7 +152,6 @@ namespace PhanMemNVSoatVe.DataAccess
             }
         }
 
-        // Helper: ánh xạ dữ liệu từ reader sang model
         private XeVao MapReader(MySqlDataReader reader)
         {
             int ordinalRa = reader.GetOrdinal("ThoiGianRa");
@@ -168,5 +169,61 @@ namespace PhanMemNVSoatVe.DataAccess
             };
             return xe;
         }
+
+        public IEnumerable<XeVao> Search(string bienSo, string soVe, DateTime? from, DateTime? to)
+        {
+            var list = new List<XeVao>();
+            using (var conn = new MySqlConnection(_connStr))
+            {
+                conn.Open();
+                var sql = new StringBuilder("SELECT * FROM DuLieuXeVao WHERE 1=1");
+
+                if (!string.IsNullOrWhiteSpace(bienSo))
+                    sql.Append(" AND BienSoXe LIKE @bienSo");
+                if (!string.IsNullOrWhiteSpace(soVe))
+                    sql.Append(" AND SoVe = @soVe");
+                if (from.HasValue)
+                    sql.Append(" AND ThoiGianVao >= @from");
+                if (to.HasValue)
+                    sql.Append(" AND ThoiGianVao < @to");
+
+                using (var cmd = new MySqlCommand(sql.ToString(), conn))
+                {
+                    if (!string.IsNullOrWhiteSpace(bienSo))
+                        cmd.Parameters.AddWithValue("@bienSo", $"%{bienSo}%");
+                    if (!string.IsNullOrWhiteSpace(soVe))
+                        cmd.Parameters.AddWithValue("@soVe", soVe);
+                    if (from.HasValue)
+                        cmd.Parameters.AddWithValue("@from", from.Value);
+                    if (to.HasValue)
+                        cmd.Parameters.AddWithValue("@to", to.Value);
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            var xeVao = new XeVao
+                            {
+                                ID = reader.GetInt32(reader.GetOrdinal("ID")),
+                                BienSoXe = reader.GetString(reader.GetOrdinal("BienSoXe")),
+                                LoaiVe = reader.GetString(reader.GetOrdinal("LoaiVe")),
+                                SoVe = reader.GetString(reader.GetOrdinal("SoVe")),
+                                ThoiGianVao = reader.GetDateTime(reader.GetOrdinal("ThoiGianVao")),
+                                GiaHan = reader.GetBoolean(reader.GetOrdinal("GiaHan")),
+                                TrangThaiVe = reader.GetString(reader.GetOrdinal("TrangThaiVe")),
+                                ThoiGianRa = reader.IsDBNull(reader.GetOrdinal("ThoiGianRa")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("ThoiGianRa")),
+                                TienPhat = reader.GetDouble(reader.GetOrdinal("TienPhat"))
+                            };
+
+                            list.Add(xeVao);
+                        }
+                    }
+                }
+            }
+
+            return list;
+        }
+
+
     }
 }
