@@ -98,8 +98,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DataAccess\IDuLieuXeVaoRepository.cs" />
     <Compile Include="DataAccess\INhanVienRepository.cs" />
     <Compile Include="DataAccess\IXeVaoRepository.cs" />
+    <Compile Include="DataAccess\MySqlDuLieuXeVaoRepository.cs" />
     <Compile Include="DataAccess\MySqlNhanVienRepository.cs" />
     <Compile Include="DataAccess\MySqlXeVaoRepository.cs" />
     <Compile Include="Form1.cs">

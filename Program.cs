@@ -26,7 +26,7 @@ namespace PhanMemNVSoatVe
                 switch (login.ChucVuDaDangNhap)
                 {
                     case "Quản Lý Thông Tin":
-                        mainForm = new frmPhanMemNVQuanLyKhachHang();
+                        mainForm = new frmPhanMemNVQuanLyThongTin();
                         break;
                     case "Soát Vé":
                         mainForm = new frmPhanMemChoNVSoatVe();
