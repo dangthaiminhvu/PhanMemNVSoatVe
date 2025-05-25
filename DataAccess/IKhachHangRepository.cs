@@ -17,5 +17,6 @@ namespace PhanMemNVSoatVe.DataAccess
             string cccd, string sdt, string loaiXe, string bienSo,
             DateTime ngayGui, DateTime ngayNhan,
             string moTa, string yeuCau);
+        bool KiemTraXeTonTai(string bienSo, DateTime ngayGui, string loaiVe);
     }
 }

@@ -137,6 +137,7 @@
       <DependentUpon>Form5.cs</DependentUpon>
     </Compile>
     <Compile Include="Models\NhanVien.cs" />
+    <Compile Include="Models\SuCo.cs" />
     <Compile Include="Models\XeVao.cs" />
     <Compile Include="Presenters\QuanLyThongTinPresenter.cs" />
     <Compile Include="Presenters\QuanLyXePresenter.cs" />

@@ -241,7 +241,6 @@
             this.btnXoaThongTin.TabIndex = 4;
             this.btnXoaThongTin.Text = "Xóa Thông Tin Đã Chọn";
             this.btnXoaThongTin.UseVisualStyleBackColor = false;
-            this.btnXoaThongTin.Click += new System.EventHandler(this.btnXoaThongTin_Click);
             // 
             // btnLuuThonTin
             // 
@@ -254,7 +253,6 @@
             this.btnLuuThonTin.TabIndex = 4;
             this.btnLuuThonTin.Text = "Lưu Thông Tin Đã Sửa";
             this.btnLuuThonTin.UseVisualStyleBackColor = false;
-            this.btnLuuThonTin.Click += new System.EventHandler(this.btnLuuThonTin_Click);
             // 
             // lblThongTinSoVe
             // 
@@ -454,7 +452,6 @@
             this.txtNhapID.Name = "txtNhapID";
             this.txtNhapID.Size = new System.Drawing.Size(261, 22);
             this.txtNhapID.TabIndex = 2;
-            this.txtNhapID.TextChanged += new System.EventHandler(this.txtNhapID_TextChanged);
             // 
             // lblTieuDeThonTinBienSo
             // 
@@ -567,7 +564,6 @@
             this.btnReset.TabIndex = 10;
             this.btnReset.Text = "NHẬP LẠI";
             this.btnReset.UseVisualStyleBackColor = false;
-            this.btnReset.Click += new System.EventHandler(this.btnReset_Click);
             // 
             // btnThemDuLieu
             // 
@@ -580,7 +576,6 @@
             this.btnThemDuLieu.TabIndex = 9;
             this.btnThemDuLieu.Text = "THÊM DỮ LIỆU";
             this.btnThemDuLieu.UseVisualStyleBackColor = false;
-            this.btnThemDuLieu.Click += new System.EventHandler(this.btnThemDuLieu_Click);
             // 
             // lblTieuDeThoiGianVao
             // 
@@ -745,7 +740,6 @@
             this.btnNhapLaiTimKiem.TabIndex = 21;
             this.btnNhapLaiTimKiem.Text = "NHẬP LẠI";
             this.btnNhapLaiTimKiem.UseVisualStyleBackColor = false;
-            this.btnNhapLaiTimKiem.Click += new System.EventHandler(this.btnNhapLaiTimKiem_Click);
             // 
             // label2
             // 
@@ -835,7 +829,6 @@
             this.btnTimKiem.TabIndex = 13;
             this.btnTimKiem.Text = "TÌM KIẾM";
             this.btnTimKiem.UseVisualStyleBackColor = false;
-            this.btnTimKiem.Click += new System.EventHandler(this.btnTimKiem_Click);
             // 
             // gbxTrangThai
             // 

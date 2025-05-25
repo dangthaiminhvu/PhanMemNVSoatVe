@@ -84,5 +84,23 @@ namespace PhanMemNVSoatVe.DataAccess
                 return cmd.ExecuteNonQuery();
             }
         }
+
+
+        public bool KiemTraXeTonTai(string bienSo, DateTime thoiGianVao, string loaiVe)
+        {
+            using (var cn = new MySqlConnection(_conn))
+            using (var cmd = new MySqlCommand(
+            @"SELECT COUNT(*) FROM DuLieuXeVao 
+          WHERE BienSoXe = @bienSo AND ThoiGianVao = @thoiGianVao AND LoaiVe = @loaiVe", cn))
+            {
+                cmd.Parameters.AddWithValue("@bienSo", bienSo);
+                cmd.Parameters.AddWithValue("@thoiGianVao", thoiGianVao);
+                cmd.Parameters.AddWithValue("@loaiVe", loaiVe);
+
+                cn.Open();
+                var count = Convert.ToInt32(cmd.ExecuteScalar());
+                return count > 0;
+            }
+        }
     }
 }

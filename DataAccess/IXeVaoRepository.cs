@@ -14,5 +14,7 @@ namespace PhanMemNVSoatVe.DataAccess
         bool Insert(XeVao xe);
         bool CapNhatRaVe(string soVe, DateTime thoiGianRa, double tienPhat);
         IEnumerable<XeVao> Search(string bienSo, string soVe, DateTime? from, DateTime? to);
+        XeVao GetXeVaoByBienSoLoaiVeVaNgay(string bienSo, string loaiVe, DateTime ngayGui);
+
     }
 }

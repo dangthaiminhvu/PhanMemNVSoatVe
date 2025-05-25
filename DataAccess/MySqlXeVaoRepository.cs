@@ -224,6 +224,64 @@ namespace PhanMemNVSoatVe.DataAccess
             return list;
         }
 
+        public XeVao GetXeVaoByBienSoLoaiVeVaNgay(string bienSo, string loaiVe, DateTime ngayGui)
+        {
+            using (var connection = new MySqlConnection(_connStr))
+            {
+                connection.Open();
+                var query = @"SELECT * FROM XeVao 
+                      WHERE BienSoXe = @BienSoXe 
+                        AND LoaiVe = @LoaiVe 
+                        AND DATE(ThoiGianVao) = @NgayGui
+                        AND TrangThaiVe = 'ChuaTra'
+                      LIMIT 1";
+                using (var command = new MySqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@BienSoXe", bienSo);
+                    command.Parameters.AddWithValue("@LoaiVe", loaiVe);
+                    command.Parameters.AddWithValue("@NgayGui", ngayGui.Date);
 
+                    using (var reader = command.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            return new XeVao
+                            {
+                                ID = Convert.ToInt32(reader["ID"]),
+                                BienSoXe = reader["BienSoXe"].ToString(),
+                                LoaiVe = reader["LoaiVe"].ToString(),
+                                SoVe = reader["SoVe"].ToString(),
+                                ThoiGianVao = Convert.ToDateTime(reader["ThoiGianVao"]),
+                                GiaHan = Convert.ToBoolean(reader["GiaHan"]),
+                                TrangThaiVe = reader["TrangThaiVe"].ToString(),
+                                ThoiGianRa = reader["ThoiGianRa"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(reader["ThoiGianRa"]),
+                                TienPhat = Convert.ToDouble(reader["TienPhat"])
+                            };
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+        public bool KiemTraXeTonTai(string bienSo, DateTime ngayGui, string loaiVe)
+        {
+            using (var conn = new MySqlConnection(_connStr))
+            {
+                conn.Open();
+                var cmd = new MySqlCommand(
+                    @"SELECT COUNT(*) FROM XeVao 
+              WHERE BienSoXe = @bienSo 
+                AND DATE(ThoiGianVao) = @ngayGui 
+                AND LoaiVe = @loaiVe
+                AND TrangThaiVe = 'ChuaTra'", conn);
+
+                cmd.Parameters.AddWithValue("@bienSo", bienSo);
+                cmd.Parameters.AddWithValue("@ngayGui", ngayGui.Date);
+                cmd.Parameters.AddWithValue("@loaiVe", loaiVe);
+
+                int count = Convert.ToInt32(cmd.ExecuteScalar());
+                return count > 0;
+            }
+        }
     }
 }
