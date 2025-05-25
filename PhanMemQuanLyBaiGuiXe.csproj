@@ -139,13 +139,16 @@
     <Compile Include="Models\NhanVien.cs" />
     <Compile Include="Models\SuCo.cs" />
     <Compile Include="Models\XeVao.cs" />
+    <Compile Include="Presenters\NhanVienPresenter.cs" />
+    <Compile Include="Presenters\QuanLyKhachHangPresenter.cs" />
     <Compile Include="Presenters\QuanLyThongTinPresenter.cs" />
     <Compile Include="Presenters\QuanLyXePresenter.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Views\INhanVienView.cs" />
+    <Compile Include="Views\IQuanLyKhachHangView.cs" />
     <Compile Include="Views\IQuanLyThongTinView.cs" />
     <Compile Include="Views\IQuanLyXeView.cs" />
-    <Compile Include="Views\ISuCoView.cs" />
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
     </EmbeddedResource>

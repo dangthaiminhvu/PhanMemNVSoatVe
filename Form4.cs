@@ -13,12 +13,15 @@ using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using PhanMemNVSoatVe.DataAccess;
 using PhanMemNVSoatVe.Models;
+using PhanMemNVSoatVe.Views;
+using PhanMemNVSoatVe.Presenters;
 
 namespace PhanMemNVSoatVe
 {
-    public partial class frmPhanMemDanhChoNVQuanTriVien : Form
+    public partial class frmPhanMemDanhChoNVQuanTriVien : Form, INhanVienView
     {
         private readonly INhanVienRepository _repo;
+        private readonly NhanVienPresenter _presenter;
         private DataTable dt;
 
         // hàm băm
@@ -39,19 +42,17 @@ namespace PhanMemNVSoatVe
         {
             InitializeComponent();
 
-            // Tải chuỗi kết nối từ app.config
             string cs = System.Configuration.ConfigurationManager
                             .ConnectionStrings["MyConnStr"]
                             .ConnectionString;
-            _repo = new MySqlNhanVienRepository(cs);
 
-            // Cấu hình chế độ cho DataGridView
+            _repo = new MySqlNhanVienRepository(cs);
+            _presenter = new NhanVienPresenter(this, new MySqlNhanVienRepository("your_connection_string"));
+            _presenter.LoadAll();
+
             ConfigureGrid();
 
-            // Nạp dữ liệu bất đồng bộ
             _ = LoadGridAsync();
-
-            LoadGrid();
         }
 
         // Cấu hình lưới hiển thị
@@ -64,6 +65,70 @@ namespace PhanMemNVSoatVe
             dgvTimKiemNhanVien.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dgvTimKiemNhanVien.MultiSelect = false;
             dgvTimKiemNhanVien.EditMode = DataGridViewEditMode.EditProgrammatically;
+        }
+
+        public string IDNhanVien => txtIDNhanVien.Text.Trim();
+        public string TenNhanVien => txtNhapTenNV.Text.Trim();
+        public string GioiTinh => cbxNhapGioiTinh.Text;
+        public DateTime NgaySinh => datNhapNgaySinh.Value;
+        public string Email => txtNhapEmail.Text.Trim();
+        public DateTime NgayVaoLam => datNhapNgayVaoLam.Value;
+        public string SDT => txtNhapSDT.Text.Trim();
+        public string DiaChi => txtNhapDiaChi.Text.Trim();
+        public string ChucVu => cbxNhapChucVu.Text;
+        public decimal MucLuong => decimal.TryParse(txtNhapMucLuong.Text.Trim(), out var val) ? val : 0;
+        public string MatKhau => txtNhapMatKhau.Text.Trim();
+        public string TrangThai => cbxNhapTrangThai.Text;
+
+        public void SetNhanVienList(DataTable dt)
+        {
+            dgvTimKiemNhanVien.DataSource = dt;
+        }
+        public void ShowMessage(string message)
+        {
+            MessageBox.Show(message);
+        }
+
+        public void ClearForm()
+        {
+            lblHienThiTenNhanVien.Text = string.Empty;
+            lblHienThiGioiTinh.Text = string.Empty;
+            lblHienThiNgaySinh.Text = string.Empty;
+            lblHienThiEmail.Text = string.Empty;
+            lblHienThiNgayVaoLam.Text = string.Empty;
+            lblHienThiSDT.Text = string.Empty;
+            lblHienThiDiaChi.Text = string.Empty;
+            lblHienThiChucVu.Text = string.Empty;
+            lblHienThiMucLuong.Text = string.Empty;
+            lblHienThiMatKhau.Text = string.Empty;
+            lblHienThiTrangThai.Text = string.Empty;
+
+            txtNhapTenNV.Clear();
+            cbxNhapGioiTinh.SelectedIndex = -1;
+            datNhapNgaySinh.Value = DateTime.Today;
+            txtNhapEmail.Clear();
+            datNhapNgayVaoLam.Value = DateTime.Today;
+            txtNhapSDT.Clear();
+            txtNhapDiaChi.Clear();
+            cbxNhapChucVu.SelectedIndex = -1;
+            txtNhapMucLuong.Clear();
+            txtNhapMatKhau.Clear();
+            cbxNhapTrangThai.SelectedIndex = -1;
+        }
+
+        public void SetNhanVienDetails(NhanVien nv)
+        {
+            lblHienThiTenNhanVien.Text = nv.TenNhanVien;
+            lblHienThiGioiTinh.Text = nv.GioiTinh;
+            lblHienThiNgaySinh.Text = nv.NgaySinh.ToShortDateString();
+            lblHienThiEmail.Text = nv.Email;
+            lblHienThiNgayVaoLam.Text = nv.NgayVaoLam.ToShortDateString();
+            lblHienThiSDT.Text = nv.SDT;
+            lblHienThiDiaChi.Text = nv.DiaChi;
+            lblHienThiChucVu.Text = nv.ChucVu;
+            lblHienThiMucLuong.Text = nv.MucLuong.ToString("N0");
+            lblHienThiMatKhau.Text = nv.MatKhau;
+            lblHienThiTrangThai.Text = nv.TrangThai;
         }
 
         // Nạp dữ liệu bất đồng bộ
@@ -394,8 +459,16 @@ namespace PhanMemNVSoatVe
             };
 
             bool success = _repo.Update(nv);
-            if (!success)
+            if (success)
+            {
+                MessageBox.Show("Cập nhật thành công!", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                _ = LoadGridAsync();
+            }
+            else
+            {
                 MessageBox.Show("Cập nhật thất bại!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+
 
             LoadNhanVien(id);
         }
@@ -489,5 +562,6 @@ namespace PhanMemNVSoatVe
         private void lblHienThiDiaChi_Click(object sender, EventArgs e) { }
 
         private void lblHienThiMatKhau_Click(object sender, EventArgs e) { }
+
     }
 }

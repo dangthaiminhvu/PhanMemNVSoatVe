@@ -9,14 +9,26 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using MySql.Data.MySqlClient;
 using PhanMemNVSoatVe.DataAccess;
+using PhanMemNVSoatVe.Presenters;
+using PhanMemNVSoatVe.Views;
 
 namespace PhanMemNVSoatVe
 {
-    public partial class frmPhanMemDanhChoNVQuanLyKhachHang : Form
+    public partial class frmPhanMemDanhChoNVQuanLyKhachHang : Form, IQuanLyKhachHangView
     {
-
+        private QuanLyKhachHangPresenter _presenter;
         private readonly IKhachHangRepository _repo;
         private DataTable _dt;
+        public DataTable DataSource
+        {
+            get => _dt;
+            set
+            {
+                _dt = value;
+                dataGridView1.DataSource = _dt?.DefaultView;
+            }
+        }
+
 
         public frmPhanMemDanhChoNVQuanLyKhachHang()
         {
@@ -32,6 +44,10 @@ namespace PhanMemNVSoatVe
             dataGridView1.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dataGridView1.MultiSelect = false;
             dataGridView1.EditMode = DataGridViewEditMode.EditProgrammatically;
+
+            _presenter = new QuanLyKhachHangPresenter(this);
+
+            LoadData?.Invoke(this, EventArgs.Empty);
         }
 
         private void KhoiTaoGrid()
@@ -80,6 +96,44 @@ namespace PhanMemNVSoatVe
             });
         }
 
+        public event EventHandler LoadData;
+        public event EventHandler GiaHanClicked;
+        public event EventHandler HuyGiaHanClicked;
+        public event EventHandler TimKiemClicked;
+        public event EventHandler NhapLaiClicked;
+        public event EventHandler LuuSuCoClicked;
+
+        public string TimKiemBienSo => txtTimKiemBienSo.Text.Trim();
+        public string TimKiemLoaiVe => cbxTimKiemLoaiVe.SelectedIndex >= 0 ? cbxTimKiemLoaiVe.SelectedItem.ToString() : null;
+        public string TimKiemSoVe => txtTimKiemSoVe.Text.Trim();
+        public string TimKiemThoiGianVao => txtTimKiemThoiGianVao.Text.Trim();
+
+        public int SelectedID
+        {
+            get
+            {
+                if (dataGridView1.CurrentRow == null) return -1;
+                return Convert.ToInt32(dataGridView1.CurrentRow.Cells["colID"].Value);
+            }
+        }
+
+        public string SuCoTenKhachHang => txtSuCoTenKhachHang.Text.Trim();
+        public DateTime SuCoNgaySinh => datNgaySinh.Value.Date;
+        public string SuCoGioiTinh => chkGTNam.Checked ? "Nam" : "Nu";
+        public string SuCoCCCD => txtCCCD.Text.Trim();
+        public string SuCoSoDienThoai => txtSuCoSoDienThoai.Text.Trim();
+        public string SuCoLoaiXe => cbxSuCoLoaiXe.SelectedItem?.ToString();
+        public string SuCoBienSo => txtSuCoBienSo.Text.Trim();
+        public DateTime SuCoNgayGui => datNgayGui.Value;
+        public DateTime SuCoNgayNhan => datNgayNhan.Value;
+        public string SuCoMoTa => txtMoTaSuCo.Text.Trim();
+        public string SuCoYeuCauKhachHang => txtYeuCauKhachHang.Text.Trim();
+
+        public void ShowMessage(string message)
+        {
+            MessageBox.Show(message);
+        }
+
         private void LoadTatCaDuLieu()
         {
             _dt = _repo.GetChuaTra();
@@ -88,88 +142,35 @@ namespace PhanMemNVSoatVe
 
         private void btnGiaHan_Click(object sender, EventArgs e)
         {
-            if (dataGridView1.CurrentRow == null) return;
-            int id = Convert.ToInt32(dataGridView1.CurrentRow.Cells["colID"].Value);
-            if (MessageBox.Show("Xác nhận gia hạn?", "Gia hạn",
-                    MessageBoxButtons.YesNo) == DialogResult.Yes)
+            if (SelectedID < 0) return;
+            if (MessageBox.Show("Xác nhận gia hạn?", "Gia hạn", MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
-                _repo.GiaHan(id);
-                LoadTatCaDuLieu();
+                GiaHanClicked?.Invoke(this, EventArgs.Empty);
             }
         }
 
         private void btbHuyGiaHan_Click(object sender, EventArgs e)
         {
-            if (dataGridView1.CurrentRow == null) return;
-            int id = Convert.ToInt32(dataGridView1.CurrentRow.Cells["colID"].Value);
-            if (MessageBox.Show("Xác nhận hủy gia hạn?", "Hủy gia hạn",
-                    MessageBoxButtons.YesNo) == DialogResult.Yes)
+            if (SelectedID < 0) return;
+            if (MessageBox.Show("Xác nhận hủy gia hạn?", "Hủy gia hạn", MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
-                _repo.HuyGiaHan(id);
-                LoadTatCaDuLieu();
+                HuyGiaHanClicked?.Invoke(this, EventArgs.Empty);
             }
         }
 
         private void bthNhapLai_Click(object sender, EventArgs e)
         {
-            _dt.DefaultView.RowFilter = string.Empty;
-            LoadTatCaDuLieu();
+            NhapLaiClicked?.Invoke(this, EventArgs.Empty);
         }
 
         private void btnTimKiem_Click(object sender, EventArgs e)
         {
-            if (_dt == null) return;
-            var filters = new List<string>();
-
-            // 1. Biển số xe
-            var bs = txtTimKiemBienSo.Text.Trim().Replace("'", "''");
-            if (!string.IsNullOrEmpty(bs))
-                filters.Add($"BienSoXe LIKE '%{bs}%'");
-
-            // 2. Loại vé
-            if (cbxTimKiemLoaiVe.SelectedIndex >= 0)
-            {
-                var lv = cbxTimKiemLoaiVe.SelectedItem.ToString().Replace("'", "''");
-                filters.Add($"LoaiVe = '{lv}'");
-            }
-
-            // 3. Số vé (tìm chính xác)
-            var sv = txtTimKiemSoVe.Text.Trim().Replace("'", "''");
-            if (!string.IsNullOrEmpty(sv))
-                filters.Add($"SoVe = '{sv}'");
-
-            // 4. Thời gian vào
-            var vaoText = txtTimKiemThoiGianVao.Text.Trim();
-            if (DateTime.TryParse(vaoText, out var vaoDt))
-            {
-                var d = vaoDt.Date;
-                var d2 = d.AddDays(1);
-                filters.Add($"ThoiGianVao >= '{d:yyyy-MM-dd}' AND ThoiGianVao < '{d2:yyyy-MM-dd}'");
-            }
-
-            _dt.DefaultView.RowFilter = filters.Count > 0
-                ? string.Join(" AND ", filters)
-                : string.Empty;
+            TimKiemClicked?.Invoke(this, EventArgs.Empty);
         }
 
         private void btnLuuSuCo_Click(object sender, EventArgs e)
         {
-            var row = _repo.LuuSuCo(
-                txtSuCoTenKhachHang.Text.Trim(),
-                datNgaySinh.Value.Date,
-                chkGTNam.Checked ? "Nam" : "Nu",
-                txtCCCD.Text.Trim(),
-                txtSuCoSoDienThoai.Text.Trim(),
-                cbxSuCoLoaiXe.SelectedItem?.ToString(),
-                txtSuCoBienSo.Text.Trim(),
-                datNgayGui.Value,
-                datNgayNhan.Value,
-                txtMoTaSuCo.Text.Trim(),
-                txtYeuCauKhachHang.Text.Trim()
-            );
-            MessageBox.Show(row > 0
-                ? "Lưu thành công!"
-                : "Lưu thất bại");
+            LuuSuCoClicked?.Invoke(this, EventArgs.Empty);
         }
 
         private void txtCCCD_TextChanged(object sender, EventArgs e) { }

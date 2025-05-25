@@ -60,11 +60,18 @@
             this.lblTieuDeTimKiemNV = new System.Windows.Forms.Label();
             this.btnTimKiemNV = new System.Windows.Forms.Button();
             this.panel7 = new System.Windows.Forms.Panel();
+            this.cbxTrangThai = new System.Windows.Forms.ComboBox();
+            this.label18 = new System.Windows.Forms.Label();
             this.txtTenNhanVien = new System.Windows.Forms.TextBox();
             this.panel2 = new System.Windows.Forms.Panel();
             this.panel1 = new System.Windows.Forms.Panel();
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.panel6 = new System.Windows.Forms.Panel();
+            this.cbxNhapChucVu = new System.Windows.Forms.ComboBox();
+            this.cbxNhapTrangThai = new System.Windows.Forms.ComboBox();
+            this.lblHienThiTrangThai = new System.Windows.Forms.Label();
+            this.label20 = new System.Windows.Forms.Label();
+            this.label19 = new System.Windows.Forms.Label();
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.lblHienThiMatKhau = new System.Windows.Forms.Label();
             this.txtNhapMatKhau = new System.Windows.Forms.TextBox();
@@ -113,13 +120,6 @@
             this.label3 = new System.Windows.Forms.Label();
             this.panel5 = new System.Windows.Forms.Panel();
             this.panel4 = new System.Windows.Forms.Panel();
-            this.label18 = new System.Windows.Forms.Label();
-            this.cbxTrangThai = new System.Windows.Forms.ComboBox();
-            this.label19 = new System.Windows.Forms.Label();
-            this.label20 = new System.Windows.Forms.Label();
-            this.lblHienThiTrangThai = new System.Windows.Forms.Label();
-            this.cbxNhapTrangThai = new System.Windows.Forms.ComboBox();
-            this.cbxNhapChucVu = new System.Windows.Forms.ComboBox();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.panel3.SuspendLayout();
@@ -484,6 +484,34 @@
             this.panel7.Size = new System.Drawing.Size(1510, 473);
             this.panel7.TabIndex = 30;
             // 
+            // cbxTrangThai
+            // 
+            this.cbxTrangThai.FormattingEnabled = true;
+            this.cbxTrangThai.Items.AddRange(new object[] {
+            "Đang Làm",
+            "Thử Việc",
+            "Đào Tạo",
+            "Tạm Nghỉ",
+            "Nghỉ Không Lương",
+            "Tạm Hoãn Hợp Đồng",
+            "Chuyển Công Tác",
+            "Đã Nghỉ Việc"});
+            this.cbxTrangThai.Location = new System.Drawing.Point(558, 325);
+            this.cbxTrangThai.Name = "cbxTrangThai";
+            this.cbxTrangThai.Size = new System.Drawing.Size(274, 24);
+            this.cbxTrangThai.TabIndex = 6;
+            this.cbxTrangThai.SelectedIndexChanged += new System.EventHandler(this.cbxTrangThai_SelectedIndexChanged);
+            // 
+            // label18
+            // 
+            this.label18.AutoSize = true;
+            this.label18.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label18.Location = new System.Drawing.Point(424, 333);
+            this.label18.Name = "label18";
+            this.label18.Size = new System.Drawing.Size(94, 20);
+            this.label18.TabIndex = 5;
+            this.label18.Text = "Trạng Thái:";
+            // 
             // txtTenNhanVien
             // 
             this.txtTenNhanVien.Location = new System.Drawing.Point(480, 67);
@@ -580,6 +608,66 @@
             this.panel6.Name = "panel6";
             this.panel6.Size = new System.Drawing.Size(1710, 558);
             this.panel6.TabIndex = 2;
+            // 
+            // cbxNhapChucVu
+            // 
+            this.cbxNhapChucVu.FormattingEnabled = true;
+            this.cbxNhapChucVu.Items.AddRange(new object[] {
+            "Soát Vé",
+            "Quản Lý Thông Tin",
+            "Quản Lý Khách Hàng"});
+            this.cbxNhapChucVu.Location = new System.Drawing.Point(1431, 329);
+            this.cbxNhapChucVu.Name = "cbxNhapChucVu";
+            this.cbxNhapChucVu.Size = new System.Drawing.Size(255, 24);
+            this.cbxNhapChucVu.TabIndex = 54;
+            // 
+            // cbxNhapTrangThai
+            // 
+            this.cbxNhapTrangThai.FormattingEnabled = true;
+            this.cbxNhapTrangThai.Items.AddRange(new object[] {
+            "Đang Làm",
+            "Thử Việc",
+            "Đào Tạo",
+            "Tạm Nghỉ",
+            "Nghỉ Không Lương",
+            "Tạm Hoãn Hợp Đồng",
+            "Chuyển Công Tác",
+            "Đã Nghỉ Việc"});
+            this.cbxNhapTrangThai.Location = new System.Drawing.Point(1431, 425);
+            this.cbxNhapTrangThai.Name = "cbxNhapTrangThai";
+            this.cbxNhapTrangThai.Size = new System.Drawing.Size(255, 24);
+            this.cbxNhapTrangThai.TabIndex = 53;
+            this.cbxNhapTrangThai.SelectedIndexChanged += new System.EventHandler(this.cbxNhapTrangThai_SelectedIndexChanged);
+            // 
+            // lblHienThiTrangThai
+            // 
+            this.lblHienThiTrangThai.BackColor = System.Drawing.Color.White;
+            this.lblHienThiTrangThai.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblHienThiTrangThai.Location = new System.Drawing.Point(585, 434);
+            this.lblHienThiTrangThai.Name = "lblHienThiTrangThai";
+            this.lblHienThiTrangThai.Size = new System.Drawing.Size(251, 23);
+            this.lblHienThiTrangThai.TabIndex = 52;
+            this.lblHienThiTrangThai.Click += new System.EventHandler(this.lblHienThiTrangThai_Click);
+            // 
+            // label20
+            // 
+            this.label20.AutoSize = true;
+            this.label20.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label20.Location = new System.Drawing.Point(1299, 429);
+            this.label20.Name = "label20";
+            this.label20.Size = new System.Drawing.Size(94, 20);
+            this.label20.TabIndex = 51;
+            this.label20.Text = "Trạng Thái:";
+            // 
+            // label19
+            // 
+            this.label19.AutoSize = true;
+            this.label19.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label19.Location = new System.Drawing.Point(440, 434);
+            this.label19.Name = "label19";
+            this.label19.Size = new System.Drawing.Size(94, 20);
+            this.label19.TabIndex = 50;
+            this.label19.Text = "Trạng Thái:";
             // 
             // textBox1
             // 
@@ -1055,94 +1143,6 @@
             this.panel4.Name = "panel4";
             this.panel4.Size = new System.Drawing.Size(100, 558);
             this.panel4.TabIndex = 0;
-            // 
-            // label18
-            // 
-            this.label18.AutoSize = true;
-            this.label18.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label18.Location = new System.Drawing.Point(424, 333);
-            this.label18.Name = "label18";
-            this.label18.Size = new System.Drawing.Size(94, 20);
-            this.label18.TabIndex = 5;
-            this.label18.Text = "Trạng Thái:";
-            // 
-            // cbxTrangThai
-            // 
-            this.cbxTrangThai.FormattingEnabled = true;
-            this.cbxTrangThai.Items.AddRange(new object[] {
-            "Đang Làm",
-            "Thử Việc",
-            "Đào Tạo",
-            "Tạm Nghỉ",
-            "Nghỉ Không Lương",
-            "Tạm Hoãn Hợp Đồng",
-            "Chuyển Công Tác",
-            "Đã Nghỉ Việc"});
-            this.cbxTrangThai.Location = new System.Drawing.Point(558, 325);
-            this.cbxTrangThai.Name = "cbxTrangThai";
-            this.cbxTrangThai.Size = new System.Drawing.Size(274, 24);
-            this.cbxTrangThai.TabIndex = 6;
-            this.cbxTrangThai.SelectedIndexChanged += new System.EventHandler(this.cbxTrangThai_SelectedIndexChanged);
-            // 
-            // label19
-            // 
-            this.label19.AutoSize = true;
-            this.label19.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label19.Location = new System.Drawing.Point(440, 434);
-            this.label19.Name = "label19";
-            this.label19.Size = new System.Drawing.Size(94, 20);
-            this.label19.TabIndex = 50;
-            this.label19.Text = "Trạng Thái:";
-            // 
-            // label20
-            // 
-            this.label20.AutoSize = true;
-            this.label20.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label20.Location = new System.Drawing.Point(1299, 429);
-            this.label20.Name = "label20";
-            this.label20.Size = new System.Drawing.Size(94, 20);
-            this.label20.TabIndex = 51;
-            this.label20.Text = "Trạng Thái:";
-            // 
-            // lblHienThiTrangThai
-            // 
-            this.lblHienThiTrangThai.BackColor = System.Drawing.Color.White;
-            this.lblHienThiTrangThai.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblHienThiTrangThai.Location = new System.Drawing.Point(585, 434);
-            this.lblHienThiTrangThai.Name = "lblHienThiTrangThai";
-            this.lblHienThiTrangThai.Size = new System.Drawing.Size(251, 23);
-            this.lblHienThiTrangThai.TabIndex = 52;
-            this.lblHienThiTrangThai.Click += new System.EventHandler(this.lblHienThiTrangThai_Click);
-            // 
-            // cbxNhapTrangThai
-            // 
-            this.cbxNhapTrangThai.FormattingEnabled = true;
-            this.cbxNhapTrangThai.Items.AddRange(new object[] {
-            "Đang Làm",
-            "Thử Việc",
-            "Đào Tạo",
-            "Tạm Nghỉ",
-            "Nghỉ Không Lương",
-            "Tạm Hoãn Hợp Đồng",
-            "Chuyển Công Tác",
-            "Đã Nghỉ Việc"});
-            this.cbxNhapTrangThai.Location = new System.Drawing.Point(1431, 425);
-            this.cbxNhapTrangThai.Name = "cbxNhapTrangThai";
-            this.cbxNhapTrangThai.Size = new System.Drawing.Size(255, 24);
-            this.cbxNhapTrangThai.TabIndex = 53;
-            this.cbxNhapTrangThai.SelectedIndexChanged += new System.EventHandler(this.cbxNhapTrangThai_SelectedIndexChanged);
-            // 
-            // cbxNhapChucVu
-            // 
-            this.cbxNhapChucVu.FormattingEnabled = true;
-            this.cbxNhapChucVu.Items.AddRange(new object[] {
-            "Soát Vé",
-            "Quản Lý Thông Tin",
-            "Quản Lý Khách Hàng"});
-            this.cbxNhapChucVu.Location = new System.Drawing.Point(1431, 329);
-            this.cbxNhapChucVu.Name = "cbxNhapChucVu";
-            this.cbxNhapChucVu.Size = new System.Drawing.Size(255, 24);
-            this.cbxNhapChucVu.TabIndex = 54;
             // 
             // frmPhanMemDanhChoNVQuanTriVien
             // 
