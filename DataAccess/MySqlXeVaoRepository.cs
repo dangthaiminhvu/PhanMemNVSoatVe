@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Configuration;
 using MySql.Data.MySqlClient;
 using PhanMemNVSoatVe.Models;
-using PhanMemNVSoatVe.DataAccess;
-using System.Collections;
 using System.Text;
 
 namespace PhanMemNVSoatVe.DataAccess

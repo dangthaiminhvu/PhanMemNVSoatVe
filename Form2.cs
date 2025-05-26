@@ -35,6 +35,14 @@ namespace PhanMemNVSoatVe
             btnXoaThongTin.Click += (s, e) => DeleteClicked?.Invoke(s, e);
             btnReset.Click += (s, e) => ResetNewClicked?.Invoke(s, e);
             txtNhapID.TextChanged += (s, e) => EditIDChanged?.Invoke(s, e);
+
+            grdThongTinKhachHang.ReadOnly = true;
+            grdThongTinKhachHang.AllowUserToAddRows = false;
+            grdThongTinKhachHang.AllowUserToDeleteRows = false;
+            grdThongTinKhachHang.AllowUserToOrderColumns = false;
+            grdThongTinKhachHang.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            grdThongTinKhachHang.MultiSelect = false;
+            grdThongTinKhachHang.EditMode = DataGridViewEditMode.EditProgrammatically;
         }
 
         #region IQuanLyThongTinView Members

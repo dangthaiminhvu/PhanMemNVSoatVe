@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Windows.Forms;
 using PhanMemNVSoatVe;
+using System.Configuration;
+using MySql.Data.MySqlClient;
+using System.IO;
 
 namespace PhanMemNVSoatVe
 {
@@ -10,6 +13,28 @@ namespace PhanMemNVSoatVe
         /// The main entry point for the application.
         /// </summary>
         [STAThread]
+        static void EnsureDatabase()
+        {
+            var rawConn = ConfigurationManager
+                .ConnectionStrings["MyConnStr"]
+                .ConnectionString;
+
+            var builder = new MySqlConnectionStringBuilder(rawConn)
+            {
+                Database = ""
+            };
+
+            using (var conn = new MySqlConnection(builder.ConnectionString))
+            {
+                conn.Open();
+
+                string script = File.ReadAllText(Path.Combine(
+                    AppDomain.CurrentDomain.BaseDirectory, "schema.sql"));
+
+                var sqlScript = new MySqlScript(conn, script);
+                sqlScript.Execute();
+            }
+        }
         static void Main()
         {
             Application.EnableVisualStyles();
