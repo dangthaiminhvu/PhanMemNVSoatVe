@@ -22,7 +22,13 @@ namespace PhanMemNVSoatVe
             InitializeComponent();
             txtNhapMatKhau.UseSystemPasswordChar = true;
 
-            connectionString = ConfigurationManager.ConnectionStrings["MyDb"]?.ConnectionString;
+            connectionString = ConfigurationManager.ConnectionStrings["MyConnStr"]?.ConnectionString;
+
+            if (string.IsNullOrWhiteSpace(connectionString))
+            {
+                MessageBox.Show("Không tìm thấy chuỗi kết nối 'MyConnStr' trong App.config.", "Lỗi cấu hình", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Environment.Exit(1);
+            }
 
             foreach (var ctrl in new Control[] { txtTenDangNhap, txtMaNhanVien, txtNhapMatKhau })
             {
