@@ -93,13 +93,36 @@ namespace PhanMemNVSoatVe
                 lblPhatMuon.Text = "";
                 return;
             }
+
             lblBienSoRa.Text = xe.BienSoXe;
             lblLoaiVeRa.Text = xe.LoaiVe;
             lblThoiGianRa.Text = xe.ThoiGianVao.ToString("dd/MM/yyyy | H:mm:ss");
-            lblPhatMuon.Text = xe.TienPhat > 0
-                                  ? $"{xe.TienPhat:N0} VND | muộn {Math.Floor((DateTime.Now - xe.ThoiGianVao).TotalHours)} giờ"
-                                  : "0 VND";
+
+            var now = DateTime.Now;
+            var gateCloseTime = xe.ThoiGianVao.Date.AddHours(22);
+            TimeSpan lateSpan = now > gateCloseTime
+                                ? now - gateCloseTime
+                                : TimeSpan.Zero;
+
+            string lateText;
+            if (lateSpan.TotalHours >= 1)
+            {
+                int hours = (int)Math.Floor(lateSpan.TotalHours);
+                lateText = $"{hours} giờ";
+            }
+            else
+            {
+                int mins = (int)Math.Floor(lateSpan.TotalMinutes);
+                lateText = $"{mins} phút";
+            }
+
+            if (xe.TienPhat > 0)
+                lblPhatMuon.Text = $"{xe.TienPhat:N0} VND | muộn {lateText}";
+            else
+                lblPhatMuon.Text = $"0 VND{(lateSpan > TimeSpan.Zero ? $" | muộn {lateText}" : "")}";
         }
+
+
 
         public void ToggleBarrierVao(bool isOpen)
             => lblTrangThaiVao.BackColor = isOpen ? Color.LimeGreen : Color.Red;

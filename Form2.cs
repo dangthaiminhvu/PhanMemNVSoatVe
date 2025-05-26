@@ -132,7 +132,11 @@ namespace PhanMemNVSoatVe
         private void cbxChinhSuaTrangThaiVe_SelectedIndexChanged(object sender, EventArgs e) { }
         private void txtChinhSuaThoiGianVao_TextChanged(object sender, EventArgs e) { }
         private void txtChinhSuaThoiGianRa_TextChanged(object sender, EventArgs e) { }
-        private void frmPhanMemNVQuanLyThongTin_Load(object sender, EventArgs e) { }
         #endregion
+
+        private void btnTimKiem_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }

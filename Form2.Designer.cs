@@ -30,6 +30,8 @@
         {
             this.mySqlDataAdapter1 = new MySql.Data.MySqlClient.MySqlDataAdapter();
             this.tabtrang3 = new System.Windows.Forms.TabPage();
+            this.txtChinhSuaThoiGianRa = new System.Windows.Forms.TextBox();
+            this.txtChinhSuaThoiGianVao = new System.Windows.Forms.TextBox();
             this.cbxChinhSuaTrangThaiVe = new System.Windows.Forms.ComboBox();
             this.cbxChinhSuaLoaiVe = new System.Windows.Forms.ComboBox();
             this.txtChinhSuaTienPhat = new System.Windows.Forms.TextBox();
@@ -107,8 +109,6 @@
             this.grdThongTinKhachHang = new System.Windows.Forms.DataGridView();
             this.chkTimKiemDaTra = new System.Windows.Forms.CheckBox();
             this.chkTimKiemChuaTra = new System.Windows.Forms.CheckBox();
-            this.txtChinhSuaThoiGianVao = new System.Windows.Forms.TextBox();
-            this.txtChinhSuaThoiGianRa = new System.Windows.Forms.TextBox();
             this.tabtrang3.SuspendLayout();
             this.tabtrang2.SuspendLayout();
             this.tab1.SuspendLayout();
@@ -169,6 +169,22 @@
             this.tabtrang3.Size = new System.Drawing.Size(1916, 933);
             this.tabtrang3.TabIndex = 2;
             this.tabtrang3.Text = "Chỉnh sửa dữ liệu";
+            // 
+            // txtChinhSuaThoiGianRa
+            // 
+            this.txtChinhSuaThoiGianRa.Location = new System.Drawing.Point(1112, 448);
+            this.txtChinhSuaThoiGianRa.Name = "txtChinhSuaThoiGianRa";
+            this.txtChinhSuaThoiGianRa.Size = new System.Drawing.Size(266, 22);
+            this.txtChinhSuaThoiGianRa.TabIndex = 8;
+            this.txtChinhSuaThoiGianRa.TextChanged += new System.EventHandler(this.txtChinhSuaThoiGianRa_TextChanged);
+            // 
+            // txtChinhSuaThoiGianVao
+            // 
+            this.txtChinhSuaThoiGianVao.Location = new System.Drawing.Point(1112, 398);
+            this.txtChinhSuaThoiGianVao.Name = "txtChinhSuaThoiGianVao";
+            this.txtChinhSuaThoiGianVao.Size = new System.Drawing.Size(266, 22);
+            this.txtChinhSuaThoiGianVao.TabIndex = 7;
+            this.txtChinhSuaThoiGianVao.TextChanged += new System.EventHandler(this.txtChinhSuaThoiGianVao_TextChanged);
             // 
             // cbxChinhSuaTrangThaiVe
             // 
@@ -829,6 +845,7 @@
             this.btnTimKiem.TabIndex = 13;
             this.btnTimKiem.Text = "TÌM KIẾM";
             this.btnTimKiem.UseVisualStyleBackColor = false;
+            this.btnTimKiem.Click += new System.EventHandler(this.btnTimKiem_Click);
             // 
             // gbxTrangThai
             // 
@@ -951,22 +968,6 @@
             this.chkTimKiemChuaTra.Name = "chkTimKiemChuaTra";
             this.chkTimKiemChuaTra.Size = new System.Drawing.Size(104, 24);
             this.chkTimKiemChuaTra.TabIndex = 0;
-            // 
-            // txtChinhSuaThoiGianVao
-            // 
-            this.txtChinhSuaThoiGianVao.Location = new System.Drawing.Point(1112, 398);
-            this.txtChinhSuaThoiGianVao.Name = "txtChinhSuaThoiGianVao";
-            this.txtChinhSuaThoiGianVao.Size = new System.Drawing.Size(266, 22);
-            this.txtChinhSuaThoiGianVao.TabIndex = 7;
-            this.txtChinhSuaThoiGianVao.TextChanged += new System.EventHandler(this.txtChinhSuaThoiGianVao_TextChanged);
-            // 
-            // txtChinhSuaThoiGianRa
-            // 
-            this.txtChinhSuaThoiGianRa.Location = new System.Drawing.Point(1112, 448);
-            this.txtChinhSuaThoiGianRa.Name = "txtChinhSuaThoiGianRa";
-            this.txtChinhSuaThoiGianRa.Size = new System.Drawing.Size(266, 22);
-            this.txtChinhSuaThoiGianRa.TabIndex = 8;
-            this.txtChinhSuaThoiGianRa.TextChanged += new System.EventHandler(this.txtChinhSuaThoiGianRa_TextChanged);
             // 
             // frmPhanMemNVQuanLyThongTin
             // 

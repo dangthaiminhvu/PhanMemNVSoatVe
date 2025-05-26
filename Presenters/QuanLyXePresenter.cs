@@ -8,6 +8,9 @@ namespace PhanMemNVSoatVe.Presenters
 {
     public class QuanLyXePresenter
     {
+        private bool _barrierVaoIsOpen = false;
+        private bool _barrierRaIsOpen = false;
+
         private readonly IQuanLyXeView _view;
         private readonly IXeVaoRepository _repo;
         private static readonly Regex _regexBienSo = new Regex(
@@ -18,12 +21,21 @@ namespace PhanMemNVSoatVe.Presenters
         {
             _view = view;
             _repo = repo;
+            _barrierVaoIsOpen = false;
+            _barrierRaIsOpen = false;
 
-            // Đăng ký sự kiện
             _view.MoBarrierVaoClicked += OnMoBarrierVao;
-            _view.DongBarrierVaoClicked += (s, e) => _view.ToggleBarrierVao(false);
+            _view.DongBarrierVaoClicked += (s, e) => {
+                _barrierVaoIsOpen = false;
+                _view.ToggleBarrierVao(false);
+            };
+
             _view.MoBarrierRaClicked += OnTraXe;
-            _view.DongBarrierRaClicked += (s, e) => _view.ToggleBarrierRa(false);
+            _view.DongBarrierRaClicked += (s, e) => {
+                _barrierRaIsOpen = false;
+                _view.ToggleBarrierRa(false);
+            };
+
             _view.SoVeRaTextChanged += OnSoVeRaChanged;
             _view.TimerTick += (s, e) => { };
         }
@@ -31,23 +43,48 @@ namespace PhanMemNVSoatVe.Presenters
         // Cấp vé: dùng SoVeVao
         private void OnMoBarrierVao(object sender, EventArgs e)
         {
-            // Chỉ áp dụng regex với xe máy và ô tô
-            if (_view.LoaiVe == "Vé xe máy" || _view.LoaiVe == "Vé ô tô")
-            {
-                if (!_regexBienSo.IsMatch(_view.BienSo))
-                {
-                    _view.ShowError("Biển số không hợp lệ.");
-                    return;
-                }
-            }
+            var now = DateTime.Now;
 
-            if (_repo.GetByBienSoChuaTra(_view.BienSo) != null)
+            // 0) Không cho cấp vé sau 22:00
+            TimeSpan gioDongCua = new TimeSpan(22, 0, 0); // 22:00
+            if (now.TimeOfDay >= gioDongCua)
             {
-                _view.ShowError($"Xe có biển số {_view.BienSo} vẫn đang còn trong bãi.");
+                _view.ShowError($"Hệ thống không nhận xe sau {gioDongCua:hh\\:mm} (hiện tại: {now:HH:mm}).");
                 return;
             }
 
-            var now = DateTime.Now;
+            // 1) Chặn re-entry nếu barrier vẫn đang mở hoặc xe có biển số nào đó vẫn chưa trả
+            if (_barrierVaoIsOpen)
+            {
+                _view.ShowError("Barrier cấp vé vẫn đang mở, vui lòng đóng trước khi cấp vé mới.");
+                return;
+            }
+
+            var existingByPlate = _repo.GetByBienSoChuaTra(_view.BienSo);
+            if (existingByPlate != null)
+            {
+                _view.ShowError($"Xe biển số {_view.BienSo} đang còn chưa trả vé trước đó.");
+                return;
+            }
+
+            // 2) Chỉ áp dụng regex với xe máy và ô tô
+            var loai = _view.LoaiVe.Trim().ToLowerInvariant();
+            bool laXeCoBienSo = loai.Contains("xe máy") || loai.Contains("ô tô");
+            if (laXeCoBienSo && !_regexBienSo.IsMatch(_view.BienSo))
+            {
+                _view.ShowError("Biển số không hợp lệ.");
+                return;
+            }
+
+            // 3) Chặn cấp vé nếu đã có vé cùng số chưa trả
+            var existing = _repo.GetBySoVe(_view.SoVeVao);
+            if (existing != null && existing.TrangThaiVe == "ChuaTra")
+            {
+                _view.ShowError($"Số vé {_view.SoVeVao} đang còn chưa trả, không thể cấp lại.");
+                return;
+            }
+
+            // 4) Mọi check ok, insert vé mới
             var xe = new XeVao
             {
                 BienSoXe = _view.BienSo,
@@ -59,6 +96,8 @@ namespace PhanMemNVSoatVe.Presenters
 
             if (_repo.Insert(xe))
             {
+                // 5) Mở barrier và set flag chỉ khi insert thành công
+                _barrierVaoIsOpen = true;
                 _view.ToggleBarrierVao(true);
                 _view.ShowInfo("Cấp vé thành công.");
             }
@@ -68,6 +107,30 @@ namespace PhanMemNVSoatVe.Presenters
             }
         }
 
+        private double TinhTienPhat(XeVao xe, DateTime referenceTime)
+        {
+            var gateCloseTime = xe.ThoiGianVao.Date.AddHours(22);
+            if (referenceTime <= gateCloseTime)
+                return 0;
+
+            var lateSpan = referenceTime - gateCloseTime;
+            // Nếu chưa gia hạn
+            if (!xe.GiaHan)
+            {
+                if (lateSpan.TotalHours < 1)
+                    return 5000;
+                else
+                    return Math.Floor(lateSpan.TotalHours) * 10000;
+            }
+            // Nếu đã gia hạn
+            else
+            {
+                if (lateSpan.TotalHours <= 1)
+                    return 0;
+                else
+                    return Math.Floor(lateSpan.TotalHours) * 10000;
+            }
+        }
 
         // Gõ số vé vào ô trả xe: lấy vé chưa trả
         private void OnSoVeRaChanged(object sender, EventArgs e)
@@ -80,20 +143,29 @@ namespace PhanMemNVSoatVe.Presenters
             }
 
             var xe = _repo.GetBySoVe(soVeRa);
-            // Nếu không tồn tại hoặc đã trả rồi, hiển thị trống
             if (xe == null || xe.TrangThaiVe != "ChuaTra")
             {
                 _view.DisplayXeInfo(null);
+                return;
             }
-            else
-            {
-                _view.DisplayXeInfo(xe);
-            }
+
+            // Tính phạt ngay khi nhập
+            var now = DateTime.Now;
+            xe.TienPhat = TinhTienPhat(xe, now);
+
+            _view.DisplayXeInfo(xe);
         }
+
 
         // Khi bấm “Trả xe” (MoBarrierRaClicked)
         private void OnTraXe(object sender, EventArgs e)
         {
+            if (_barrierRaIsOpen)
+            {
+                _view.ShowError("Barrier trả xe đang mở, vui lòng đóng trước khi trả xe tiếp.");
+                return;
+            }
+
             var soVeRa = _view.SoVeRa;
             var xe = _repo.GetBySoVe(soVeRa);
 
@@ -109,15 +181,24 @@ namespace PhanMemNVSoatVe.Presenters
             }
 
             var now = DateTime.Now;
-            var delta = now - xe.ThoiGianVao;
-            double phat = 0;
+            double phat = TinhTienPhat(xe, now);
 
-            if (delta.TotalHours > (xe.GiaHan ? 1 : 0))
+            if (_repo.CapNhatRaVe(soVeRa, now, phat))
             {
-                phat = Math.Floor(delta.TotalHours) * 10000;
-                if (!xe.GiaHan && delta.TotalHours < 1)
-                    phat = 5000;
+                xe.TienPhat = phat;
+                _view.ToggleBarrierRa(true);
+                _view.DisplayXeInfo(xe);
+                _view.ShowInfo($"Trả xe thành công. Phí: {phat:N0} VND");
             }
+            else
+            {
+                _view.ShowError("Lỗi khi trả xe.");
+            }
+
+
+            xe.TienPhat = phat;
+            _view.DisplayXeInfo(xe);
+
 
             if (_repo.CapNhatRaVe(soVeRa, now, phat))
             {
@@ -131,5 +212,6 @@ namespace PhanMemNVSoatVe.Presenters
                 _view.ShowError("Lỗi khi trả xe.");
             }
         }
+
     }
 }
