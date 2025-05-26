@@ -443,7 +443,7 @@
             this.lblSuCoLoaiXe.Name = "lblSuCoLoaiXe";
             this.lblSuCoLoaiXe.Size = new System.Drawing.Size(71, 20);
             this.lblSuCoLoaiXe.TabIndex = 9;
-            this.lblSuCoLoaiXe.Text = "Loại Xe:";
+            this.lblSuCoLoaiXe.Text = "Loại Vé:";
             // 
             // txtSuCoBienSo
             // 
@@ -473,10 +473,9 @@
             // 
             this.cbxSuCoLoaiXe.FormattingEnabled = true;
             this.cbxSuCoLoaiXe.Items.AddRange(new object[] {
-            "Xe máy",
-            "Ô tô",
-            "Xe đạp",
-            "Xe đạp điện"});
+            "Vé xe máy",
+            "Vé xe đạp",
+            "Vé xe đạp điện"});
             this.cbxSuCoLoaiXe.Location = new System.Drawing.Point(1601, 44);
             this.cbxSuCoLoaiXe.Name = "cbxSuCoLoaiXe";
             this.cbxSuCoLoaiXe.Size = new System.Drawing.Size(307, 24);

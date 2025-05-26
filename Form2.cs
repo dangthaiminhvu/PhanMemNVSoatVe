@@ -22,6 +22,17 @@ namespace PhanMemNVSoatVe
     {
         private readonly QuanLyThongTinPresenter _presenter;
 
+        public void ClearFilterInputs()
+        {
+            txtBienSoXe.Text = "";
+            cbxLoaiVe.SelectedIndex = -1;
+            txtSoVe.Text = "";
+            txtThoiGianVao.Text = "";
+            txtThoiGianRa.Text = "";
+            chkDaTra.Checked = false;
+            chkChuaTra.Checked = false;
+        }
+
         public frmPhanMemNVQuanLyThongTin()
         {
             InitializeComponent();
@@ -35,6 +46,8 @@ namespace PhanMemNVSoatVe
             btnXoaThongTin.Click += (s, e) => DeleteClicked?.Invoke(s, e);
             btnReset.Click += (s, e) => ResetNewClicked?.Invoke(s, e);
             txtNhapID.TextChanged += (s, e) => EditIDChanged?.Invoke(s, e);
+            btnTimKiem.Click += (s, e) => FilterChanged?.Invoke(s, e);
+            btnNhapLaiTimKiem.Click += (s, e) => ResetFilterClicked?.Invoke(s, e);
 
             grdThongTinKhachHang.ReadOnly = true;
             grdThongTinKhachHang.AllowUserToAddRows = false;
@@ -57,6 +70,7 @@ namespace PhanMemNVSoatVe
         {
             set => grdThongTinKhachHang.DataSource = value;
         }
+        public bool NewGiaHan => cbxGiaHan.Checked;
 
         public string NewBienSo => txtNhapBienSo.Text.Trim();
         public string NewLoaiVe => cbxNhapLoaiVe.SelectedIndex >= 0 ? cbxNhapLoaiVe.Text : string.Empty;
@@ -135,6 +149,26 @@ namespace PhanMemNVSoatVe
         #endregion
 
         private void btnTimKiem_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void btnNhapLaiTimKiem_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void btnReset_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void btnThemDuLieu_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void cbxGiaHan_CheckedChanged(object sender, EventArgs e)
         {
 
         }

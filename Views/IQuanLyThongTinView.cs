@@ -14,6 +14,8 @@ namespace PhanMemNVSoatVe.Views
         DateTime? FilterRaDate { get; }
         bool FilterDaTra { get; }
         bool FilterChuaTra { get; }
+        bool NewGiaHan { get; }
+
 
         // Dữ liệu hiển thị
         BindingList<XeVao> GridData { set; }
@@ -30,6 +32,8 @@ namespace PhanMemNVSoatVe.Views
         // Sửa
         string EditID { get; }
         void ShowEditSection(XeVao xe);
+
+        void ClearFilterInputs();
 
         // Message
         void ShowError(string msg);

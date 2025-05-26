@@ -109,6 +109,8 @@
             this.grdThongTinKhachHang = new System.Windows.Forms.DataGridView();
             this.chkTimKiemDaTra = new System.Windows.Forms.CheckBox();
             this.chkTimKiemChuaTra = new System.Windows.Forms.CheckBox();
+            this.lblNhapGiaHan = new System.Windows.Forms.Label();
+            this.cbxGiaHan = new System.Windows.Forms.CheckBox();
             this.tabtrang3.SuspendLayout();
             this.tabtrang2.SuspendLayout();
             this.tab1.SuspendLayout();
@@ -512,6 +514,8 @@
             // tabtrang2
             // 
             this.tabtrang2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(224)))), ((int)(((byte)(224)))), ((int)(((byte)(224)))));
+            this.tabtrang2.Controls.Add(this.cbxGiaHan);
+            this.tabtrang2.Controls.Add(this.lblNhapGiaHan);
             this.tabtrang2.Controls.Add(this.dtpNhapThoiGianRa);
             this.tabtrang2.Controls.Add(this.dtpNhapThoiGianVao);
             this.tabtrang2.Controls.Add(this.txtNhapTienPhat);
@@ -580,6 +584,7 @@
             this.btnReset.TabIndex = 10;
             this.btnReset.Text = "NHẬP LẠI";
             this.btnReset.UseVisualStyleBackColor = false;
+            this.btnReset.Click += new System.EventHandler(this.btnReset_Click);
             // 
             // btnThemDuLieu
             // 
@@ -592,6 +597,7 @@
             this.btnThemDuLieu.TabIndex = 9;
             this.btnThemDuLieu.Text = "THÊM DỮ LIỆU";
             this.btnThemDuLieu.UseVisualStyleBackColor = false;
+            this.btnThemDuLieu.Click += new System.EventHandler(this.btnThemDuLieu_Click);
             // 
             // lblTieuDeThoiGianVao
             // 
@@ -756,6 +762,7 @@
             this.btnNhapLaiTimKiem.TabIndex = 21;
             this.btnNhapLaiTimKiem.Text = "NHẬP LẠI";
             this.btnNhapLaiTimKiem.UseVisualStyleBackColor = false;
+            this.btnNhapLaiTimKiem.Click += new System.EventHandler(this.btnNhapLaiTimKiem_Click);
             // 
             // label2
             // 
@@ -969,6 +976,26 @@
             this.chkTimKiemChuaTra.Size = new System.Drawing.Size(104, 24);
             this.chkTimKiemChuaTra.TabIndex = 0;
             // 
+            // lblNhapGiaHan
+            // 
+            this.lblNhapGiaHan.AutoSize = true;
+            this.lblNhapGiaHan.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblNhapGiaHan.Location = new System.Drawing.Point(1345, 113);
+            this.lblNhapGiaHan.Name = "lblNhapGiaHan";
+            this.lblNhapGiaHan.Size = new System.Drawing.Size(76, 20);
+            this.lblNhapGiaHan.TabIndex = 16;
+            this.lblNhapGiaHan.Text = "Gia Hạn:";
+            // 
+            // cbxGiaHan
+            // 
+            this.cbxGiaHan.AutoSize = true;
+            this.cbxGiaHan.Location = new System.Drawing.Point(1435, 115);
+            this.cbxGiaHan.Name = "cbxGiaHan";
+            this.cbxGiaHan.Size = new System.Drawing.Size(18, 17);
+            this.cbxGiaHan.TabIndex = 17;
+            this.cbxGiaHan.UseVisualStyleBackColor = true;
+            this.cbxGiaHan.CheckedChanged += new System.EventHandler(this.cbxGiaHan_CheckedChanged);
+            // 
             // frmPhanMemNVQuanLyThongTin
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
@@ -1074,5 +1101,7 @@
         private System.Windows.Forms.Button btnNhapLaiTimKiem;
         private System.Windows.Forms.TextBox txtChinhSuaThoiGianRa;
         private System.Windows.Forms.TextBox txtChinhSuaThoiGianVao;
+        private System.Windows.Forms.CheckBox cbxGiaHan;
+        private System.Windows.Forms.Label lblNhapGiaHan;
     }
 }
