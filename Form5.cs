@@ -9,18 +9,20 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using MySql.Data.MySqlClient;
+using System.Configuration;
 
 namespace PhanMemNVSoatVe
 {
     public partial class frmDangNhap : Form
     {
-        private string connectionString =
-            "server=localhost;database=Phanmemquanlybaiguixe;uid=root;pwd=3010D@ngth@im1nhvu2005;";
+        private string connectionString;
 
         public frmDangNhap()
         {
             InitializeComponent();
             txtNhapMatKhau.UseSystemPasswordChar = true;
+
+            connectionString = ConfigurationManager.ConnectionStrings["MyDb"]?.ConnectionString;
 
             foreach (var ctrl in new Control[] { txtTenDangNhap, txtMaNhanVien, txtNhapMatKhau })
             {
