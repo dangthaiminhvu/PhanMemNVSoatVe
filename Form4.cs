@@ -47,7 +47,7 @@ namespace PhanMemNVSoatVe
                             .ConnectionString;
 
             _repo = new MySqlNhanVienRepository(cs);
-            _presenter = new NhanVienPresenter(this, new MySqlNhanVienRepository("your_connection_string"));
+            _presenter = new NhanVienPresenter(this, new MySqlNhanVienRepository(cs));
             _presenter.LoadAll();
 
             ConfigureGrid();
@@ -55,7 +55,7 @@ namespace PhanMemNVSoatVe
             _ = LoadGridAsync();
         }
 
-        // Cấu hình lưới hiển thị
+        // Cấu hình cái bảng hiển thị dữ liệu
         private void ConfigureGrid()
         {
             dgvTimKiemNhanVien.ReadOnly = true;
@@ -114,21 +114,6 @@ namespace PhanMemNVSoatVe
             txtNhapMucLuong.Clear();
             txtNhapMatKhau.Clear();
             cbxNhapTrangThai.SelectedIndex = -1;
-        }
-
-        public void SetNhanVienDetails(NhanVien nv)
-        {
-            lblHienThiTenNhanVien.Text = nv.TenNhanVien;
-            lblHienThiGioiTinh.Text = nv.GioiTinh;
-            lblHienThiNgaySinh.Text = nv.NgaySinh.ToShortDateString();
-            lblHienThiEmail.Text = nv.Email;
-            lblHienThiNgayVaoLam.Text = nv.NgayVaoLam.ToShortDateString();
-            lblHienThiSDT.Text = nv.SDT;
-            lblHienThiDiaChi.Text = nv.DiaChi;
-            lblHienThiChucVu.Text = nv.ChucVu;
-            lblHienThiMucLuong.Text = nv.MucLuong.ToString("N0");
-            lblHienThiMatKhau.Text = nv.MatKhau;
-            lblHienThiTrangThai.Text = nv.TrangThai;
         }
 
         // Nạp dữ liệu bất đồng bộ

@@ -26,7 +26,7 @@ namespace PhanMemNVSoatVe.Presenters
             _view.HuyGiaHanClicked += View_HuyGiaHanClicked;
             _view.TimKiemClicked += View_TimKiemClicked;
             _view.NhapLaiClicked += View_NhapLaiClicked;
-            _view.LuuSuCoClicked += View_LuuSuCoClicked;
+            _view.LuuSuCoClicked += OnLuuSuCo;
         }
 
         private void View_LoadData(object sender, EventArgs e)
@@ -95,26 +95,62 @@ namespace PhanMemNVSoatVe.Presenters
             LoadTatCaDuLieu();
         }
 
-        private void View_LuuSuCoClicked(object sender, EventArgs e)
+        private void OnLuuSuCo(object sender, EventArgs e)
         {
-            var row = _repo.LuuSuCo(
-                _view.SuCoTenKhachHang,
-                _view.SuCoNgaySinh,
-                _view.SuCoGioiTinh,
-                _view.SuCoCCCD,
-                _view.SuCoSoDienThoai,
-                _view.SuCoLoaiXe,
-                _view.SuCoBienSo,
-                _view.SuCoNgayGui,
-                _view.SuCoNgayNhan,
-                _view.SuCoMoTa,
-                _view.SuCoYeuCauKhachHang
-            );
-            if (row > 0)
-                _view.ShowMessage("Lưu thành công!");
-            else
-                _view.ShowMessage("Lưu thất bại");
+            // 1) Lấy dữ liệu từ View
+            var plate = _view.SuCoBienSo;
+            var loaiVe = _view.SuCoLoaiXe;
+            var ngayGui = _view.SuCoNgayGui;
+
+            // 2) Kiểm tra nhập liệu cơ bản
+            if (string.IsNullOrWhiteSpace(plate) || string.IsNullOrWhiteSpace(loaiVe))
+            {
+                _view.ShowMessage("Vui lòng nhập đầy đủ biển số và loại vé.");
+                return;
+            }
+
+            // 3) Gọi phương thức kiểm tra tồn tại
+            if (!_repo.KiemTraXeTonTai(plate, ngayGui, loaiVe))
+            {
+                _view.ShowMessage(
+                    $"Không tìm thấy xe với biển số “{plate}”, vé “{loaiVe}” vào ngày {ngayGui:dd/MM/yyyy}.");
+                return;
+            }
+
+            // 4) Nếu hợp lệ, tiến hành lưu sự cố và kiểm tra kết quả
+            try
+            {
+                int affectedRows = _repo.LuuSuCo(
+                    _view.SuCoTenKhachHang,
+                    _view.SuCoNgaySinh,
+                    _view.SuCoGioiTinh,
+                    _view.SuCoCCCD,
+                    _view.SuCoSoDienThoai,
+                    loaiVe,
+                    plate,
+                    ngayGui,
+                    _view.SuCoNgayNhan,
+                    _view.SuCoMoTa,
+                    _view.SuCoYeuCauKhachHang
+                );
+
+                if (affectedRows > 0)
+                {
+                    _view.ShowMessage("Lưu báo cáo sự cố thành công.");
+                    // Reload dữ liệu lên grid
+                    LoadTatCaDuLieu();
+                }
+                else
+                {
+                    _view.ShowMessage("Lưu thất bại, vui lòng thử lại.");
+                }
+            }
+            catch (Exception ex)
+            {
+                _view.ShowMessage("Lỗi khi lưu sự cố: " + ex.Message);
+            }
         }
+
     }
 }
 
