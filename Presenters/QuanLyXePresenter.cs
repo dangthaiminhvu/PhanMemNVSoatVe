@@ -2,11 +2,7 @@
 using PhanMemNVSoatVe.Models;
 using PhanMemNVSoatVe.Views;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace PhanMemNVSoatVe.Presenters
 {
@@ -32,17 +28,22 @@ namespace PhanMemNVSoatVe.Presenters
             _view.TimerTick += (s, e) => { };
         }
 
+        // Cấp vé: dùng SoVeVao
         private void OnMoBarrierVao(object sender, EventArgs e)
         {
-            if (!_regexBienSo.IsMatch(_view.BienSo))
+            // Chỉ áp dụng regex với xe máy và ô tô
+            if (_view.LoaiVe == "Vé xe máy" || _view.LoaiVe == "Vé ô tô")
             {
-                _view.ShowError("Biển số không hợp lệ.");
-                return;
+                if (!_regexBienSo.IsMatch(_view.BienSo))
+                {
+                    _view.ShowError("Biển số không hợp lệ.");
+                    return;
+                }
             }
 
             if (_repo.GetByBienSoChuaTra(_view.BienSo) != null)
             {
-                _view.ShowError($"Xe {_view.BienSo} đang còn trong bãi.");
+                _view.ShowError($"Xe có biển số {_view.BienSo} vẫn đang còn trong bãi.");
                 return;
             }
 
@@ -51,7 +52,7 @@ namespace PhanMemNVSoatVe.Presenters
             {
                 BienSoXe = _view.BienSo,
                 LoaiVe = _view.LoaiVe,
-                SoVe = _view.SoVe,
+                SoVe = _view.SoVeVao,
                 ThoiGianVao = now,
                 GiaHan = false
             };
@@ -67,19 +68,43 @@ namespace PhanMemNVSoatVe.Presenters
             }
         }
 
+
+        // Gõ số vé vào ô trả xe: lấy vé chưa trả
         private void OnSoVeRaChanged(object sender, EventArgs e)
         {
-            var xe = _repo.GetBySoVe(_view.SoVe);
-            _view.DisplayXeInfo(xe);
+            var soVeRa = _view.SoVeRa;
+            if (string.IsNullOrWhiteSpace(soVeRa))
+            {
+                _view.DisplayXeInfo(null);
+                return;
+            }
+
+            var xe = _repo.GetBySoVe(soVeRa);
+            // Nếu không tồn tại hoặc đã trả rồi, hiển thị trống
+            if (xe == null || xe.TrangThaiVe != "ChuaTra")
+            {
+                _view.DisplayXeInfo(null);
+            }
+            else
+            {
+                _view.DisplayXeInfo(xe);
+            }
         }
 
+        // Khi bấm “Trả xe” (MoBarrierRaClicked)
         private void OnTraXe(object sender, EventArgs e)
         {
-            var soVe = _view.SoVe;
-            var xe = _repo.GetBySoVe(soVe);
+            var soVeRa = _view.SoVeRa;
+            var xe = _repo.GetBySoVe(soVeRa);
+
             if (xe == null)
             {
                 _view.ShowError("Số vé không tồn tại.");
+                return;
+            }
+            if (xe.TrangThaiVe != "ChuaTra")
+            {
+                _view.ShowError("Vé này đã được trả.");
                 return;
             }
 
@@ -94,7 +119,7 @@ namespace PhanMemNVSoatVe.Presenters
                     phat = 5000;
             }
 
-            if (_repo.CapNhatRaVe(soVe, now, phat))
+            if (_repo.CapNhatRaVe(soVeRa, now, phat))
             {
                 _view.ToggleBarrierRa(true);
                 xe.TienPhat = phat;
@@ -107,5 +132,4 @@ namespace PhanMemNVSoatVe.Presenters
             }
         }
     }
-
 }

@@ -56,7 +56,7 @@ namespace PhanMemNVSoatVe
             btnDongBarrier.Click += (s, e) => DongBarrierVaoClicked.Invoke(s, e);
             button1.Click += (s, e) => DongBarrierRaClicked.Invoke(s, e);
             button2.Click += (s, e) => MoBarrierRaClicked.Invoke(s, e);
-            txtSoVeRa.TextChanged += (s, e) => SoVeRaTextChanged.Invoke(s, e);
+            txtSoVeRa.TextChanged += (s, e) => SoVeRaTextChanged?.Invoke(s, e);
             tmrThoiGianVao.Tick += (s, e) => TimerTick.Invoke(s, e);
         }
 
@@ -65,7 +65,8 @@ namespace PhanMemNVSoatVe
         // Properties lấy từ UI
         public string BienSo   => txtBienSoVao.Text.Trim();
         public string LoaiVe   => cbxLoaiVeVao.SelectedItem?.ToString() ?? "";
-        public string SoVe     => txtSoVeVao.Text.Trim();
+        public string SoVeVao => txtSoVeVao.Text.Trim();
+        public string SoVeRa => txtSoVeRa.Text.Trim();
 
         // Events để Presenter đăng ký
         public event EventHandler MoBarrierVaoClicked;
@@ -141,7 +142,6 @@ namespace PhanMemNVSoatVe
         }
 
         private void btnMoBarrier_Click_1(object sender, EventArgs e){ }
-        private void txtSoVeRa_TextChanged(object sender, EventArgs e) { }
         private void button1_Click(object sender, EventArgs e) { }
         private void btnDongBarrier_Click(object sender, EventArgs e) { }
         private void lblLanVao_Click(object sender, EventArgs e) { }

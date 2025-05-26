@@ -286,7 +286,6 @@
             this.txtSoVeRa.Name = "txtSoVeRa";
             this.txtSoVeRa.Size = new System.Drawing.Size(521, 22);
             this.txtSoVeRa.TabIndex = 1;
-            this.txtSoVeRa.TextChanged += new System.EventHandler(this.txtSoVeRa_TextChanged);
             // 
             // lblTieuDeBienSoRa
             // 
