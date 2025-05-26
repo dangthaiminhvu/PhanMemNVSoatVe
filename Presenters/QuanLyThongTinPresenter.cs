@@ -24,17 +24,31 @@ namespace PhanMemNVSoatVe.Presenters
             _view.AddClicked += (_, __) => AddRecord();
             _view.UpdateClicked += (_, __) => UpdateRecord();
             _view.DeleteClicked += (_, __) => DeleteRecord();
-            _view.ResetNewClicked += (_, __) => { };
             _view.EditIDChanged += (_, __) => PopulateEdit();
             _view.ResetFilterClicked += (_, __) =>
             {
                 ResetFilter();
                 _view.ClearFilterInputs();
             };
+            _view.ResetNewClicked += (_, __) => _view.ClearNewInputs();
+            _view.EditIDChanged += (_, __) => OnEditIDChanged();
+            _view.UpdateClicked += (_, __) => UpdateRecord();
+            _view.ResetEditClicked += (_, __) => PopulateEdit();
 
-            // Load lần đầu
+
             LoadAll();
         }
+
+        private void OnEditIDChanged()
+        {
+            if (string.IsNullOrWhiteSpace(_view.EditID))
+            {
+                _view.ClearEditSectionInputs();
+                return;
+            }
+            PopulateEdit();
+        }
+
 
         private void LoadAll()
         {
@@ -64,7 +78,6 @@ namespace PhanMemNVSoatVe.Presenters
 
         private void ResetFilter()
         {
-            _view.ShowInfo("Filter reset.");
             LoadAll();
         }
 
@@ -73,9 +86,8 @@ namespace PhanMemNVSoatVe.Presenters
             if (loaiVe != "vé xe máy" && loaiVe != "vé ô tô")
                 return true;
 
-            // Regex cơ bản: 2 số đầu + 1 hoặc 2 chữ cái + 4-5 số
-            var regexXeMay = @"^\d{2}[A-Z]\d{4,5}$";     // VD: 29A12345
-            var regexOTo = @"^\d{2}[A-Z]{1,2}\d{4,5}$";  // VD: 30AB12345
+            var regexXeMay = @"^\d{2}[A-Z]\d{4,5}$";
+            var regexOTo = @"^\d{2}[A-Z]{1,2}\d{4,5}$";
 
             return loaiVe == "vé xe máy"
                 ? System.Text.RegularExpressions.Regex.IsMatch(bienSo, regexXeMay, System.Text.RegularExpressions.RegexOptions.IgnoreCase)
@@ -94,11 +106,9 @@ namespace PhanMemNVSoatVe.Presenters
                 return;
             }
 
-            // Kiểm tra định dạng biển số nếu là xe máy hoặc ô tô
-            if ((_view.NewLoaiVe == "Vé xe máy" || _view.NewLoaiVe == "Vé ô tô") &&
-                !System.Text.RegularExpressions.Regex.IsMatch(_view.NewBienSo, @"^\d{2}[A-Z]-\d{3,5}$"))
+            if (!KiemTraBienSoHopLe(_view.NewBienSo, _view.NewLoaiVe))
             {
-                _view.ShowError("Biển số xe không hợp lệ. Vui lòng nhập đúng định dạng.");
+                _view.ShowError("Biển số xe không hợp lệ cho loại vé này.");
                 return;
             }
 
@@ -111,7 +121,6 @@ namespace PhanMemNVSoatVe.Presenters
                 return;
             }
 
-            // Ánh xạ trạng thái
             string trangThaiDb;
 
             if (_view.NewTrangThaiVe == "Đã trả")
@@ -139,9 +148,9 @@ namespace PhanMemNVSoatVe.Presenters
                 SoVe = soVe,
                 ThoiGianVao = _view.NewThoiGianVao,
                 TrangThaiVe = trangThaiDb,
-                GiaHan = _view.NewGiaHan, // false nếu không tích
+                GiaHan = _view.NewGiaHan,
                 ThoiGianRa = tgRa,
-                TienPhat = _view.NewTienPhat // mặc định là 0 nếu không nhập
+                TienPhat = _view.NewTienPhat
             };
 
             if (_repo.Insert(xe))
@@ -153,8 +162,6 @@ namespace PhanMemNVSoatVe.Presenters
                 _view.ShowError("Thêm thất bại.");
         }
 
-
-
         private void PopulateEdit()
         {
             if (int.TryParse(_view.EditID, out var id))
@@ -162,17 +169,67 @@ namespace PhanMemNVSoatVe.Presenters
                 var xe = _repo.GetById(id);
                 _view.ShowEditSection(xe);
             }
+            else
+            {
+                // ID không parse được thì cũng clear
+                _view.ClearEditSectionInputs();
+            }
         }
+
 
         private void UpdateRecord()
         {
-            if (!int.TryParse(_view.EditID, out var id)) return;
-            var xe = _repo.GetById(id);
-            if (xe == null) return;
-            // Presenter không modify tất cả field, ShowEditSection đã gán UI->model
-            if (_repo.Update(xe)) { _view.ShowInfo("Cập nhật thành công."); LoadAll(); }
-            else _view.ShowError("Cập nhật thất bại.");
+            // 1. Kiểm tra không để trống ô nào
+            if (string.IsNullOrWhiteSpace(_view.EditBienSo) ||
+                string.IsNullOrWhiteSpace(_view.EditLoaiVe) ||
+                string.IsNullOrWhiteSpace(_view.EditSoVe) ||
+                string.IsNullOrWhiteSpace(_view.EditTrangThaiVe) ||
+                _view.EditThoiGianVao == default(DateTime))
+            {
+                _view.ShowError("Không được để trống bất cứ ô nào trong phần chỉnh sửa.");
+                return;
+            }
+
+            // 2. Nếu trạng thái là DaTra nhưng ThoiGianRa null → lỗi
+            if (_view.EditTrangThaiVe == "DaTra" && !_view.EditThoiGianRa.HasValue)
+            {
+                _view.ShowError("Vé đã trả phải có thời gian trả (Thời gian ra).");
+                return;
+            }
+
+            // 3. Parse ID
+            if (!int.TryParse(_view.EditID, out var id))
+            {
+                _view.ShowError("ID không hợp lệ.");
+                return;
+            }
+
+            // 4. Tạo đối tượng và lưu
+            var xe = new XeVao
+            {
+                ID = id,
+                BienSoXe = _view.EditBienSo,
+                LoaiVe = _view.EditLoaiVe,
+                SoVe = _view.EditSoVe,
+                ThoiGianVao = _view.EditThoiGianVao,
+                GiaHan = false,  // hoặc điền từ UI nếu có
+                TrangThaiVe = _view.EditTrangThaiVe == "DaTra" ? "DaTra" : "ChuaTra",
+                ThoiGianRa = _view.EditTrangThaiVe == "DaTra" ? _view.EditThoiGianRa : null,
+                TienPhat = _view.EditTienPhat
+            };
+
+            if (_repo.Update(xe))
+            {
+                _view.ShowInfo("Cập nhật thành công.");
+                LoadAll();
+            }
+            else
+            {
+                _view.ShowError("Cập nhật thất bại.");
+            }
         }
+
+
 
         private void DeleteRecord()
         {

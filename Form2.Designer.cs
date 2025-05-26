@@ -66,6 +66,8 @@
             this.lblTieuDeChinhSuaThongTin = new System.Windows.Forms.Label();
             this.lblTieuDeTimKiemThongTin = new System.Windows.Forms.Label();
             this.tabtrang2 = new System.Windows.Forms.TabPage();
+            this.cbxGiaHan = new System.Windows.Forms.CheckBox();
+            this.lblNhapGiaHan = new System.Windows.Forms.Label();
             this.dtpNhapThoiGianRa = new System.Windows.Forms.DateTimePicker();
             this.dtpNhapThoiGianVao = new System.Windows.Forms.DateTimePicker();
             this.txtNhapTienPhat = new System.Windows.Forms.TextBox();
@@ -109,8 +111,6 @@
             this.grdThongTinKhachHang = new System.Windows.Forms.DataGridView();
             this.chkTimKiemDaTra = new System.Windows.Forms.CheckBox();
             this.chkTimKiemChuaTra = new System.Windows.Forms.CheckBox();
-            this.lblNhapGiaHan = new System.Windows.Forms.Label();
-            this.cbxGiaHan = new System.Windows.Forms.CheckBox();
             this.tabtrang3.SuspendLayout();
             this.tabtrang2.SuspendLayout();
             this.tab1.SuspendLayout();
@@ -271,6 +271,7 @@
             this.btnLuuThonTin.TabIndex = 4;
             this.btnLuuThonTin.Text = "Lưu Thông Tin Đã Sửa";
             this.btnLuuThonTin.UseVisualStyleBackColor = false;
+            this.btnLuuThonTin.Click += new System.EventHandler(this.btnLuuThonTin_Click);
             // 
             // lblThongTinSoVe
             // 
@@ -538,6 +539,26 @@
             this.tabtrang2.Size = new System.Drawing.Size(1916, 933);
             this.tabtrang2.TabIndex = 1;
             this.tabtrang2.Text = "Thêm khách";
+            // 
+            // cbxGiaHan
+            // 
+            this.cbxGiaHan.AutoSize = true;
+            this.cbxGiaHan.Location = new System.Drawing.Point(1435, 115);
+            this.cbxGiaHan.Name = "cbxGiaHan";
+            this.cbxGiaHan.Size = new System.Drawing.Size(18, 17);
+            this.cbxGiaHan.TabIndex = 17;
+            this.cbxGiaHan.UseVisualStyleBackColor = true;
+            this.cbxGiaHan.CheckedChanged += new System.EventHandler(this.cbxGiaHan_CheckedChanged);
+            // 
+            // lblNhapGiaHan
+            // 
+            this.lblNhapGiaHan.AutoSize = true;
+            this.lblNhapGiaHan.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblNhapGiaHan.Location = new System.Drawing.Point(1345, 113);
+            this.lblNhapGiaHan.Name = "lblNhapGiaHan";
+            this.lblNhapGiaHan.Size = new System.Drawing.Size(76, 20);
+            this.lblNhapGiaHan.TabIndex = 16;
+            this.lblNhapGiaHan.Text = "Gia Hạn:";
             // 
             // dtpNhapThoiGianRa
             // 
@@ -975,26 +996,6 @@
             this.chkTimKiemChuaTra.Name = "chkTimKiemChuaTra";
             this.chkTimKiemChuaTra.Size = new System.Drawing.Size(104, 24);
             this.chkTimKiemChuaTra.TabIndex = 0;
-            // 
-            // lblNhapGiaHan
-            // 
-            this.lblNhapGiaHan.AutoSize = true;
-            this.lblNhapGiaHan.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblNhapGiaHan.Location = new System.Drawing.Point(1345, 113);
-            this.lblNhapGiaHan.Name = "lblNhapGiaHan";
-            this.lblNhapGiaHan.Size = new System.Drawing.Size(76, 20);
-            this.lblNhapGiaHan.TabIndex = 16;
-            this.lblNhapGiaHan.Text = "Gia Hạn:";
-            // 
-            // cbxGiaHan
-            // 
-            this.cbxGiaHan.AutoSize = true;
-            this.cbxGiaHan.Location = new System.Drawing.Point(1435, 115);
-            this.cbxGiaHan.Name = "cbxGiaHan";
-            this.cbxGiaHan.Size = new System.Drawing.Size(18, 17);
-            this.cbxGiaHan.TabIndex = 17;
-            this.cbxGiaHan.UseVisualStyleBackColor = true;
-            this.cbxGiaHan.CheckedChanged += new System.EventHandler(this.cbxGiaHan_CheckedChanged);
             // 
             // frmPhanMemNVQuanLyThongTin
             // 

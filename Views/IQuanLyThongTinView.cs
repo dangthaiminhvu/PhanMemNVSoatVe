@@ -16,6 +16,16 @@ namespace PhanMemNVSoatVe.Views
         bool FilterChuaTra { get; }
         bool NewGiaHan { get; }
 
+        // thuộc tính cho chỉnh sửa thông tin
+        string EditBienSo { get; }
+        string EditLoaiVe { get; }
+        string EditSoVe { get; }
+        DateTime EditThoiGianVao { get; }
+        string EditTrangThaiVe { get; }
+        DateTime? EditThoiGianRa { get; }
+        double EditTienPhat { get; }
+        void ClearEditSectionInputs();
+
 
         // Dữ liệu hiển thị
         BindingList<XeVao> GridData { set; }
@@ -35,6 +45,8 @@ namespace PhanMemNVSoatVe.Views
 
         void ClearFilterInputs();
 
+        void ClearNewInputs();
+
         // Message
         void ShowError(string msg);
         void ShowInfo(string msg);
@@ -48,5 +60,7 @@ namespace PhanMemNVSoatVe.Views
         event EventHandler DeleteClicked;
         event EventHandler ResetNewClicked;
         event EventHandler EditIDChanged;
+        event EventHandler ResetEditClicked;
+
     }
 }
