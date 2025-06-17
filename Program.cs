@@ -2,7 +2,6 @@
 using System.Windows.Forms;
 using PhanMemNVSoatVe;
 using System.Configuration;
-using MySql.Data.MySqlClient;
 using System.IO;
 
 namespace PhanMemNVSoatVe
@@ -17,6 +16,11 @@ namespace PhanMemNVSoatVe
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+
+            // Database connection check as the first thing
+            var connStr = ConnectionHelper.GetConnectionString();
+            if (string.IsNullOrEmpty(connStr))
+                return; // Exit if no valid connection
 
             using (var login = new frmDangNhap())
             {
